@@ -15,14 +15,14 @@ In these runs the model left out an `export` keyword the task asked for; the sco
 ## Requirements
 
 - A Mac with Apple silicon and 16 GB of memory or more, on macOS 15 or later.
-- llama.cpp build b11715 (commit `9d1878a`). Newer builds: see "Tested setup" for which have been checked; an untested build may refuse to load Kraits, and the launcher then says so.
+- llama.cpp build b11715 (commit `9d1878a`). The official prebuilt for Mac works as it comes: `llama-b11715-bin-macos-arm64.tar.gz` from https://github.com/ggml-org/llama.cpp/releases/tag/b11715. Keep `llama-server` and its `libggml-*.dylib` files together in the folder it unpacks to. Homebrew's llama.cpp is a different build; with it, the launcher stops and names the build it needs.
 - The model file: Unsloth's `Qwen3.6-35B-A3B-UD-Q4_K_M.gguf`, https://huggingface.co/unsloth/Qwen3.6-35B-A3B-GGUF (22,134,528,992 bytes). Kraits runs this one file only.
 
 ## Quick start
 
 ```sh
 cd kraits/bin
-LLAMA_SERVER=/path/to/llama-server ./kraits-server -m Qwen3.6-35B-A3B-UD-Q4_K_M.gguf -c 8448
+LLAMA_SERVER=/path/to/llama-b11715/llama-server ./kraits-server -m Qwen3.6-35B-A3B-UD-Q4_K_M.gguf -c 8448
 ```
 
 `kraits-server` checks that llama.cpp really loaded the plugin and refuses to start if it did not, so you cannot end up with an ordinary llama.cpp wearing the name. It prints `Kraits loaded` and then runs `llama-server --device KRAITS -ngl 99 -ot "token_embd=KRAITS"` with your flags. Keep the three files in `bin/` together. Kraits serves one request at a time (the launcher sets `-np 1`); a second request waits its turn.
@@ -36,7 +36,7 @@ llama.cpp keeps its server, its tokenizer and its sampling. Kraits runs the mode
 ## Tested setup
 
 - Mac mini M4, 16 GB, macOS 26.6. Needs macOS 15 or later on Apple Silicon.
-- llama.cpp b11715 (commit `9d1878a`, 17 Oct 2026). Other builds are not tested and may not load the plugin.
+- llama.cpp b11715 (commit `9d1878a`, 17 Oct 2026): our own build, and the official macOS arm64 prebuilt (tested by the release tester, 20 Oct). Other builds are not tested and may not load the plugin.
 - The model: Unsloth's Qwen3.6-35B-A3B UD-Q4_K_M, `Qwen3.6-35B-A3B-UD-Q4_K_M.gguf` (22,134,528,992 bytes), https://huggingface.co/unsloth/Qwen3.6-35B-A3B-GGUF. Kraits runs this one file; any other file is refused with a one-line message.
 
 ## Licence
