@@ -49,14 +49,8 @@ llama-server -m Qwen3.6-35B-A3B-UD-Q4_K_M.gguf --device KRAITS -ngl 99 -ot "toke
 {"messages":[{"role":"user","content":"<the task>"}],"max_tokens":3000,"temperature":0,"chat_template_kwargs":{"enable_thinking":false}}
 ```
 
-4. The llama.cpp-alone control, same file, same task, same API, for comparison only:
-
-```sh
-llama-server -m Qwen3.6-35B-A3B-UD-Q4_K_M.gguf -ngl 99 -ncmoe 40 -t 4 -c 8448
-```
-
 ## Which llama.cpp
 
 The plugin links `libggml-base` ABI 0.27 and is tested only with llama.cpp **b11715** (commit `9d1878a`, 17 Oct 2026). Other builds are not tested and may not load it: plugins use llama.cpp's internal backend structures, which can change in any build. An older llama.cpp (for example b11220, ggml 0.25) does not load it; `--list-devices` will not show KRAITS. Check with `llama-server --version`.
 
-Reproduced from this file, by someone who did not write it (20 Oct 2026, fresh folder on the same Mac, the repo's own binaries, `test/task_lru.txt` as the prompt, `test/judge.ts` as the judge): **25.36 tokens/s, judge 8/8** (792 tokens). All speeds here are llama.cpp's own `predicted_per_second`: tokens per second, not words (dense code runs about 2.5 tokens a word). Developers' lab measurements before that, same Mac: 24.20–25.18 tokens/s, 8/8; against llama.cpp alone on the same file, same task, same API (the control command above), 2.09 tokens/s (llama.cpp's own `predicted_per_second`, 827 tokens; a developer's control, not measured by the release tester), judge 8/8. Full four-agent crew run: 196 s, 8/8. The README carries the release tester's numbers, not these.
+Reproduced from this file, by someone who did not write it (20 Oct 2026, fresh folder on the same Mac, the repo's own binaries, `test/task_lru.txt` as the prompt, `test/judge.ts` as the judge): **25.36 tokens/s, judge 8/8** (792 tokens). All speeds here are llama.cpp's own `predicted_per_second`: tokens per second, not words (dense code runs about 2.5 tokens a word). Developers' lab measurements before that, same Mac: 24.20–25.18 tokens/s, 8/8. Full four-agent crew run: 196 s, 8/8. The README carries the release tester's numbers, not these.
