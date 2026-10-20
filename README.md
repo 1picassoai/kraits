@@ -5,7 +5,7 @@ A plugin that makes stock llama.cpp run the stock Unsloth Qwen3.6-35B-A3B 4-bit 
 | Same Mac, same file, same task | Writing speed (tokens/s) | Judge |
 |---|---|---|
 | llama.cpp | not yet measured by the tester (the developers measured 2.09; see BUILD.md) | |
-| llama.cpp + Kraits | 20.3 to 20.7 (three requests in a row: 20.73, 20.28, 20.54) | 8/8 |
+| llama.cpp + Kraits | 20.3 to 20.7 end to end, prompt read included (three requests in a row: 20.73, 20.28, 20.54); llama.cpp's own `eval time` on the same runs: generation about 24.7 (tester's exact figures to follow) | 8/8 |
 
 The Kraits row is the release tester's measurement of the shipped binaries (20 Oct 2026, fresh folder, the launcher, the repo's own test), not the developers'. Speeds are llama.cpp's own tokens per second (dense code runs about 2.5 tokens a word). The tester also confirmed a two-turn chat on one server (the second turn re-used the conversation and answered correctly) and that the launcher refuses a wrong llama.cpp build. The judge is eight executed checks on the TypeScript LRU cache the model writes (temperature 0, thinking off).
 
