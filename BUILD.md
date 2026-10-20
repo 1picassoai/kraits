@@ -12,7 +12,7 @@ The engine's source is not published; its build records are kept privately and t
 
 ## The model file
 
-`Qwen3.6-35B-A3B-UD-Q4_K_M.gguf` from https://huggingface.co/unsloth/Qwen3.6-35B-A3B-GGUF (branch main), 22,134,528,992 bytes. No other file was measured. The separate "MTP" build from Unsloth's other repo is not this file.
+Kraits needs Unsloth's `Qwen3.6-35B-A3B-UD-Q4_K_M.gguf` (https://huggingface.co/unsloth/Qwen3.6-35B-A3B-GGUF, branch main), exactly 22,134,528,992 bytes. It checks the file's size and a fingerprint of its weights and refuses any other file, including Unsloth's separate "MTP" build, with a one-line message.
 
 ## The short way: the launcher
 

@@ -30,7 +30,7 @@ llama.cpp keeps its server, its tokenizer and its sampling. Kraits runs the mode
 
 - Mac mini M4, 16 GB, macOS 26.6. Needs macOS 15 or later on Apple Silicon.
 - llama.cpp b11715 (commit `9d1878a`, 17 Oct 2026). Other builds are not tested and may not load the plugin.
-- Qwen3.6-35B-A3B UD-Q4_K_M from Unsloth (22.13 GB).
+- The model: Unsloth's Qwen3.6-35B-A3B UD-Q4_K_M, `Qwen3.6-35B-A3B-UD-Q4_K_M.gguf` (22,134,528,992 bytes), https://huggingface.co/unsloth/Qwen3.6-35B-A3B-GGUF. Kraits runs this one file; any other file is refused with a one-line message.
 
 ## Licence
 
