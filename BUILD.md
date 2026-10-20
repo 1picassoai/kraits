@@ -8,7 +8,7 @@
 
 Built on a Mac mini M4 (16 GB), macOS 15 or later required, Apple silicon only. Ad-hoc signed. The plugin finds the engine library beside itself; ggml-base beside llama-server or in /opt/homebrew/lib. Built against llama.cpp `b11715` (commit `9d1878a`, 17 Oct 2026; ggml-base 0.27.0).
 
-The engine's source is not published; its build records are kept privately and the binaries above are reproducible from them by the maintainers.
+The engine is the shipped engine release (0.5.4, `8a9fd0f`) plus the Kraits wrapper and the one-model lock; its source is not published.
 
 ## The model file
 
