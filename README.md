@@ -9,7 +9,7 @@ A plugin that makes stock llama.cpp run the stock Unsloth Qwen3.6-35B-A3B 4-bit 
 
 The numbers in this table are measured by the release tester, not by the developers. The judge is eight executed checks on the TypeScript LRU cache the model writes (temperature 0, thinking off).
 
-Both rows were measured on the same Mac mini M4 (16 GB), the same file, the same task over `/v1/chat/completions`, temperature 0, thinking off. The llama.cpp row ran `llama-server -m Qwen3.6-35B-A3B-UD-Q4_K_M.gguf -ngl 99 -ncmoe 40 -t 4 -c 8448` (experts on the CPU side); the Kraits row ran the quick-start command below.
+Both rows were measured on the same Mac mini M4 (16 GB), the same file, the same task over `/v1/chat/completions`, temperature 0, thinking off. The llama.cpp row ran `llama-server -m Qwen3.6-35B-A3B-UD-Q4_K_M.gguf -ngl 99 -ncmoe 40 -t 4 -c 8448` (experts on the CPU side); the Kraits row ran `llama-server -m Qwen3.6-35B-A3B-UD-Q4_K_M.gguf --device KRAITS -ngl 99 -ot "token_embd=KRAITS" -c 8448 -np 1` with `GGML_BACKEND_PATH` set as in the quick start.
 
 ## Quick start
 
@@ -19,7 +19,7 @@ llama-server -m Qwen3.6-35B-A3B-UD-Q4_K_M.gguf \
   --device KRAITS -ngl 99 -ot "token_embd=KRAITS"
 ```
 
-Keep `libkraits.dylib` in the same folder as `libggml-kraits.dylib`.
+Keep `libkraits.dylib` in the same folder as `libggml-kraits.dylib`. Check it loaded: `llama-server --list-devices` must list `KRAITS`; if it does not, llama.cpp is running without the plugin and will say nothing. Both `--device KRAITS` and `-ot "token_embd=KRAITS"` are required.
 
 ## How it works
 
@@ -28,7 +28,7 @@ llama.cpp keeps its server, its tokenizer and its sampling. Kraits runs the mode
 ## Tested setup
 
 - Mac mini M4, 16 GB, macOS 26.6. Needs macOS 15 or later on Apple Silicon.
-- llama.cpp b11715.
+- llama.cpp master at commit `9d1878a` (20 Oct 2026) or newer: the plugin needs the ggml-base 0.27 ABI. Older builds (ggml 0.25) will not load it.
 - Qwen3.6-35B-A3B UD-Q4_K_M from Unsloth (22.13 GB).
 
 ## Licence
