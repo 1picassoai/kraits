@@ -9,6 +9,8 @@ A plugin that makes stock llama.cpp run the stock Unsloth Qwen3.6-35B-A3B 4-bit 
 
 The judge is eight executed checks on the TypeScript LRU cache the model writes (temperature 0, thinking off).
 
+Both rows were measured on the same Mac mini M4 (16 GB) with the same file. The llama.cpp row ran `llama-server -m Qwen3.6-35B-A3B-UD-Q4_K_M.gguf -ngl 99 -ncmoe 40 -t 4 -c 4096 --temp 0` (experts on the CPU side, the only way the 22 GB file runs on 16 GB without Kraits); the Kraits row ran the quick-start command below.
+
 ## Quick start
 
 ```sh
