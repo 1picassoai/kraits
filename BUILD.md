@@ -9,6 +9,10 @@ Built on a Mac mini M4 (16 GB), macOS 15 or later required, Apple silicon only. 
 
 Engine source: Coachwhip, branch `lab/kraits-2010`, commit `fcd8c03` (plugin refuses to start without `-ot "token_embd=KRAITS"`; earlier `e0078a1` plugin + build script, `9021b83` engine library and kernels). Not included here.
 
+## The model file
+
+`Qwen3.6-35B-A3B-UD-Q4_K_M.gguf` from https://huggingface.co/unsloth/Qwen3.6-35B-A3B-GGUF (branch main), 22,134,528,992 bytes. No other file was measured. The separate "MTP" build from Unsloth's other repo is not this file.
+
 ## How to run it (the exact commands measured; nothing else was)
 
 1. Put `libggml-kraits.dylib` and `libkraits.dylib` in one folder. Keep `llama-server` and its own `libggml-*.dylib` files together as they came.
