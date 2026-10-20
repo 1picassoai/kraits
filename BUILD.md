@@ -4,6 +4,7 @@
 |---|---|---|
 | bin/libggml-kraits.dylib (the llama.cpp add-in) | 73,600 | 40ad900ac6bedb76cc46ff79709123e582d84f9dd30550f4e8360430425af009 |
 | bin/libkraits.dylib (the engine behind it) | 9,313,776 | 5986e43ee7dbf4df685952bf24e7c5ddda953c6392fdd400e352bf41ad8210ab |
+| bin/kraits-server (the launcher, a shell script) | 1,602 | 4e21e67cca76953fa1dd08e2c36c826a309db33db89a26c792bbde3bcb813e51 |
 
 Built on a Mac mini M4 (16 GB), macOS 15 or later required, Apple silicon only. Ad-hoc signed. The plugin finds the engine beside itself; ggml-base beside llama-server or in /opt/homebrew/lib. Built against llama.cpp `b11715` (commit `9d1878a`, 17 Oct 2026; ggml-base 0.27.0).
 
@@ -22,7 +23,7 @@ cd kraits/bin
 LLAMA_SERVER=/path/to/llama-server ./kraits-server -m Qwen3.6-35B-A3B-UD-Q4_K_M.gguf -c 8448 -np 1
 ```
 
-(`LLAMA_SERVER` can be left out when `llama-server` is on your PATH.) If it says `STOPPED`, Kraits did not load and nothing is running; the message names the llama-server version and the build Kraits is tested with.
+(`LLAMA_SERVER` can be left out when `llama-server` is on your PATH. If the script is not executable after cloning, `chmod +x kraits-server`.) The launcher sets `-np 1`: Kraits serves **one request at a time**; a second request sent while one is running waits for its turn. Started by hand without `-np 1`, a request on any slot but the first fails. If it says `STOPPED`, Kraits did not load and nothing is running; the message names the llama-server version and the build Kraits is tested with.
 
 ## How to run it by hand (the exact commands measured; nothing else was)
 
@@ -58,4 +59,4 @@ llama-server -m Qwen3.6-35B-A3B-UD-Q4_K_M.gguf -ngl 99 -ncmoe 40 -t 4 -c 8448
 
 The plugin links `libggml-base` ABI 0.27 and is tested only with llama.cpp **b11715** (commit `9d1878a`, 17 Oct 2026). Other builds are not tested and may not load it: plugins use llama.cpp's internal backend structures, which can change in any build. An older llama.cpp (for example b11220, ggml 0.25) does not load it; `--list-devices` will not show KRAITS. Check with `llama-server --version`.
 
-Reproduced from this file, by someone who did not write it (20 Oct 2026, fresh folder on the same Mac, the repo's own binaries, `test/task_lru.txt` as the prompt, `test/judge.ts` as the judge): **25.36 words/s, judge 8/8** (792 words). Developers' lab measurements before that, same Mac: 24.20–25.18 words/s, 8/8; against 2.09 words/s for llama.cpp alone on the same file, same task, same API (the control command above), judge 8/8. Full four-agent crew run: 196 s, 8/8. The README carries the release tester's numbers, not these.
+Reproduced from this file, by someone who did not write it (20 Oct 2026, fresh folder on the same Mac, the repo's own binaries, `test/task_lru.txt` as the prompt, `test/judge.ts` as the judge): **25.36 tokens/s, judge 8/8** (792 tokens). All speeds here are llama.cpp's own `predicted_per_second`: tokens per second, not words (dense code runs about 2.5 tokens a word). Developers' lab measurements before that, same Mac: 24.20–25.18 tokens/s, 8/8; against 2.09 tokens/s for llama.cpp alone on the same file, same task, same API (the control command above), judge 8/8. Full four-agent crew run: 196 s, 8/8. The README carries the release tester's numbers, not these.

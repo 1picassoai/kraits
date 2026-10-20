@@ -32,5 +32,5 @@ if ! printf '%s\n' "$DEVICES" | grep -q "KRAITS"; then
   exit 1
 fi
 
-echo "kraits-server: Kraits loaded ($PLUGIN)"
-exec "$SERVER" --device KRAITS -ngl 99 -ot "token_embd=KRAITS" "$@"
+echo "kraits-server: Kraits loaded ($PLUGIN). One request at a time (one server slot)."
+exec "$SERVER" --device KRAITS -ngl 99 -ot "token_embd=KRAITS" -np 1 "$@"
