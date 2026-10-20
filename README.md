@@ -1,5 +1,7 @@
 # Kraits
 
+![A llama and a striped krait sharing sandwiches on a picnic blanket, beside a basket marked SSD and a Mac mini](docs/kraits-picnic.png)
+
 A plugin that makes stock llama.cpp run the stock Unsloth Qwen3.6-35B-A3B 4-bit file faster on a 16 GB Mac. It changes nothing in llama.cpp and nothing in the model file.
 
 Measured by the release tester on the tested Mac (20 Oct 2026, the shipped files, the official llama.cpp b11715 prebuilt). The workload is a four-agent coding crew whose conversation grows to three sizes. Reading and writing speeds are llama-server's own counts in tokens per second, given as the range across the agents' turns. The score is the crew app's own judge running the code the model wrote, scored as written.
