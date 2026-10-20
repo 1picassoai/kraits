@@ -11,6 +11,12 @@ The Kraits row is the release tester's measurement of the shipped binaries (20 O
 
 Both rows were measured on the same Mac mini M4 (16 GB), the same file, the same task over `/v1/chat/completions`, temperature 0, thinking off. The llama.cpp row ran `llama-server -m Qwen3.6-35B-A3B-UD-Q4_K_M.gguf -ngl 99 -ncmoe 40 -t 4 -c 8448` (experts on the CPU side); the Kraits row ran `llama-server -m Qwen3.6-35B-A3B-UD-Q4_K_M.gguf --device KRAITS -ngl 99 -ot "token_embd=KRAITS" -c 8448 -np 1 --cache-ram 0` with `--cache-ram 0` and `GGML_BACKEND_PATH` set as in the quick start.
 
+## Requirements
+
+- A Mac with Apple silicon and 16 GB of memory or more, on macOS 15 or later.
+- llama.cpp build b11715 (commit `9d1878a`). Newer builds: see "Tested setup" for which have been checked; an untested build may refuse to load Kraits, and the launcher then says so.
+- The model file: Unsloth's `Qwen3.6-35B-A3B-UD-Q4_K_M.gguf`, https://huggingface.co/unsloth/Qwen3.6-35B-A3B-GGUF (22,134,528,992 bytes). Kraits runs this one file only.
+
 ## Quick start
 
 ```sh
