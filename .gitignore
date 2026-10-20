@@ -1,0 +1,4 @@
+*.gguf
+*.log
+runs/
+.DS_Store
