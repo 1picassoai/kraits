@@ -3,12 +3,12 @@
 | file | bytes | sha256 |
 |---|---|---|
 | bin/libggml-kraits.dylib (the llama.cpp add-in) | 73,600 | 40ad900ac6bedb76cc46ff79709123e582d84f9dd30550f4e8360430425af009 |
-| bin/libkraits.dylib (the engine behind it) | 9,313,776 | 5986e43ee7dbf4df685952bf24e7c5ddda953c6392fdd400e352bf41ad8210ab |
+| bin/libkraits.dylib (the Kraits engine) | 9,313,776 | 5986e43ee7dbf4df685952bf24e7c5ddda953c6392fdd400e352bf41ad8210ab |
 | bin/kraits-server (the launcher, a shell script) | 1,602 | 4e21e67cca76953fa1dd08e2c36c826a309db33db89a26c792bbde3bcb813e51 |
 
-Built on a Mac mini M4 (16 GB), macOS 15 or later required, Apple silicon only. Ad-hoc signed. The plugin finds the engine beside itself; ggml-base beside llama-server or in /opt/homebrew/lib. Built against llama.cpp `b11715` (commit `9d1878a`, 17 Oct 2026; ggml-base 0.27.0).
+Built on a Mac mini M4 (16 GB), macOS 15 or later required, Apple silicon only. Ad-hoc signed. The plugin finds the engine library beside itself; ggml-base beside llama-server or in /opt/homebrew/lib. Built against llama.cpp `b11715` (commit `9d1878a`, 17 Oct 2026; ggml-base 0.27.0).
 
-Engine source: Coachwhip, branch `lab/kraits-2010`, commit `fcd8c03` (plugin refuses to start without `-ot "token_embd=KRAITS"`; earlier `e0078a1` plugin + build script, `9021b83` engine library and kernels). Not included here.
+The engine's source is not published; its build records are kept privately and the binaries above are reproducible from them by the maintainers.
 
 ## The model file
 
