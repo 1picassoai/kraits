@@ -4,10 +4,10 @@ A plugin that makes stock llama.cpp run the stock Unsloth Qwen3.6-35B-A3B 4-bit 
 
 | Same Mac, same file, same task | Writing speed (tokens/s) | Judge |
 |---|---|---|
-| llama.cpp | (tester's number, pending) | (pending) |
-| llama.cpp + Kraits | (tester's number, pending) | (pending) |
+| llama.cpp | not yet measured by the tester (the developers measured 2.09; see BUILD.md) | |
+| llama.cpp + Kraits | 20.3 to 20.7 (three requests in a row: 20.73, 20.28, 20.54) | 8/8 |
 
-The numbers in this table are measured by the release tester, not by the developers, and are llama.cpp's own tokens per second (dense code runs about 2.5 tokens a word). The judge is eight executed checks on the TypeScript LRU cache the model writes (temperature 0, thinking off).
+The Kraits row is the release tester's measurement of the shipped binaries (20 Oct 2026, fresh folder, the launcher, the repo's own test), not the developers'. Speeds are llama.cpp's own tokens per second (dense code runs about 2.5 tokens a word). The tester also confirmed a two-turn chat on one server (the second turn re-used the conversation and answered correctly) and that the launcher refuses a wrong llama.cpp build. The judge is eight executed checks on the TypeScript LRU cache the model writes (temperature 0, thinking off).
 
 Both rows were measured on the same Mac mini M4 (16 GB), the same file, the same task over `/v1/chat/completions`, temperature 0, thinking off. The llama.cpp row ran `llama-server -m Qwen3.6-35B-A3B-UD-Q4_K_M.gguf -ngl 99 -ncmoe 40 -t 4 -c 8448` (experts on the CPU side); the Kraits row ran `llama-server -m Qwen3.6-35B-A3B-UD-Q4_K_M.gguf --device KRAITS -ngl 99 -ot "token_embd=KRAITS" -c 8448 -np 1` with `GGML_BACKEND_PATH` set as in the quick start.
 
