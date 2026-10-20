@@ -2,8 +2,8 @@
 
 | file | bytes | sha256 |
 |---|---|---|
-| bin/libggml-kraits.dylib (the llama.cpp add-in) | 73,792 | d70bf412b1cb4573e8e500b4f519746b378de6f068eae8c2fb7293e2756cb10b |
-| bin/libkraits.dylib (the Kraits engine) | 9,305,904 | 7433459047b6f381632212c65f2e489c412ed40be6139882a425204401f3688b |
+| bin/libggml-kraits.dylib (the llama.cpp add-in) | 74,048 | c331340e7d5669efa6a649baec601409f873bfac787211328a902373d1a2d486 |
+| bin/libkraits.dylib (the Kraits engine) | 9,193,456 | 46b473875a5be18aa400afcb7bd246cb686afe555cc260b35c270d8278d48709 |
 | bin/kraits-server (the launcher, a shell script) | 1,719 | ac41413debd10f012b3a0c2612ffab255ce9c12a255bc667e3ffe382bdaf7e65 |
 
 Built on a Mac mini M4 (16 GB), macOS 15 or later required, Apple silicon only. Ad-hoc signed. The plugin finds the engine library beside itself; ggml-base beside llama-server or in /opt/homebrew/lib. Built against llama.cpp `b11715` (commit `9d1878a`, 17 Oct 2026; ggml-base 0.27.0).
