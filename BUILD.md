@@ -2,12 +2,12 @@
 
 | file | bytes | sha256 |
 |---|---|---|
-| bin/libggml-kraits.dylib (the llama.cpp add-in) | 73,392 | 6e1a521f5a5d977b4b7a3a66049246d7e5bf971570735e2ba54d328419d1ce8e |
+| bin/libggml-kraits.dylib (the llama.cpp add-in) | 73,600 | 40ad900ac6bedb76cc46ff79709123e582d84f9dd30550f4e8360430425af009 |
 | bin/libkraits.dylib (the engine behind it) | 9,313,776 | 5986e43ee7dbf4df685952bf24e7c5ddda953c6392fdd400e352bf41ad8210ab |
 
 Built on a Mac mini M4 (16 GB), macOS 15 or later required, Apple silicon only. Ad-hoc signed. The plugin finds the engine beside itself; ggml-base beside llama-server or in /opt/homebrew/lib. Built against llama.cpp `b11715` (commit `9d1878a`, 17 Oct 2026; ggml-base 0.27.0).
 
-Engine source: Coachwhip, branch `lab/kraits-2010`, commit `e0078a1` (plugin source and release build script; `9021b83` engine library and kernels). Not included here.
+Engine source: Coachwhip, branch `lab/kraits-2010`, commit `fcd8c03` (plugin refuses to start without `-ot "token_embd=KRAITS"`; earlier `e0078a1` plugin + build script, `9021b83` engine library and kernels). Not included here.
 
 ## How to run it (the exact commands measured; nothing else was)
 
@@ -25,6 +25,14 @@ llama-server --list-devices      # must list "KRAITS". If it does not, the plugi
 llama-server -m Qwen3.6-35B-A3B-UD-Q4_K_M.gguf --device KRAITS -ngl 99 -ot "token_embd=KRAITS" -c 8448 -np 1
 ```
 
+3b. Starting with `--device KRAITS` and without `-ot "token_embd=KRAITS"` now stops at once with `kraits: STOPPED. --device KRAITS also needs: -ot "token_embd=KRAITS"` (exit code 1).
+
+3c. The measured task was sent over `/v1/chat/completions` with thinking switched off in the request body, which is where that switch lives for this model:
+
+```json
+{"messages":[{"role":"user","content":"<the task>"}],"max_tokens":3000,"temperature":0,"chat_template_kwargs":{"enable_thinking":false}}
+```
+
 4. The llama.cpp-alone control, same file, same task, same API, for comparison only:
 
 ```sh
@@ -33,6 +41,6 @@ llama-server -m Qwen3.6-35B-A3B-UD-Q4_K_M.gguf -ngl 99 -ncmoe 40 -t 4 -c 8448
 
 ## Which llama.cpp
 
-The plugin links `libggml-base` ABI **0.27** (llama.cpp `b11715` = commit `9d1878a`, 17 Oct 2026, or newer). An older llama.cpp (for example b11220, ggml 0.25) cannot load it: `--list-devices` will not show KRAITS. Check with `llama-server --version`.
+The plugin links `libggml-base` ABI 0.27 and is tested only with llama.cpp **b11715** (commit `9d1878a`, 17 Oct 2026). Other builds are not tested and may not load it: plugins use llama.cpp's internal backend structures, which can change in any build. An older llama.cpp (for example b11220, ggml 0.25) does not load it; `--list-devices` will not show KRAITS. Check with `llama-server --version`.
 
 Developers' measurements (20 Oct 2026, same Mac; the README carries the release tester's numbers, not these): stock `llama-server` + stock Unsloth `Qwen3.6-35B-A3B-UD-Q4_K_M.gguf`, `--device KRAITS`: 24.20–25.18 words/s on the LRU-cache task, judge 8/8, against 2.09 words/s for llama.cpp alone on the same file, same task, same API (the control command above), judge 8/8. Full four-agent crew run: 196 s, 8/8.
