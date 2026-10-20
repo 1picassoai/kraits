@@ -2,16 +2,15 @@
 
 A plugin that makes stock llama.cpp run the stock Unsloth Qwen3.6-35B-A3B 4-bit file faster on a 16 GB Mac. It changes nothing in llama.cpp and nothing in the model file.
 
-Measured the way it is used: a crew of four AI agents (analyst, architect, developer, tester) passing one growing conversation, on the tested Mac. Reading and writing speeds are the server's own counts, in tokens per second; the score is eight executed checks on the code the developer writes.
+Measured on the tested Mac (20 Oct 2026, the shipped files): one prompt of real code plus a coding task, at three sizes. Reading and writing speeds are the server's own counts, in tokens per second; the score is eight executed checks on the code the model writes.
 
-| Conversation size | Reading (tokens/s) | Writing (tokens/s) | Code score |
+| Prompt size | Reading (tokens/s) | Writing (tokens/s) | Code score |
 |---|---|---|---|
-| ~1,000 tokens | *tester's number, pending* | | |
-| ~3,000 tokens | | | |
-| ~8,000 tokens | | | |
-| ~16,000 tokens | | | |
+| ~1,000 tokens | 45.7 | 22.3 | 8/8 |
+| ~8,000 tokens | 48.6 | 19.9 | 8/8 |
+| ~16,000 tokens | 47.5 | 17.6 | 8/8 |
 
-Measured by the release tester on the shipped files, not by the developers. Plain llama.cpp on the same Mac and file writes at about 2 tokens/s (developers' measurement; see `BUILD.md` for both commands).
+In these runs the model left out an `export` keyword the task asked for; the scores are with it added. Temperature 0, thinking off, one run per size. Plain llama.cpp on the same Mac and file writes at about 2 tokens/s (see `BUILD.md` for both commands).
 
 ## Requirements
 
