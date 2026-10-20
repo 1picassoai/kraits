@@ -9,13 +9,13 @@ A plugin that makes stock llama.cpp run the stock Unsloth Qwen3.6-35B-A3B 4-bit 
 
 The Kraits row is the release tester's measurement of the shipped binaries (20 Oct 2026, fresh folder, the launcher, the repo's own test), not the developers'. Speeds are llama.cpp's own tokens per second (dense code runs about 2.5 tokens a word). The tester also confirmed a two-turn chat on one server (the second turn re-used the conversation and answered correctly) and that the launcher refuses a wrong llama.cpp build. The judge is eight executed checks on the TypeScript LRU cache the model writes (temperature 0, thinking off).
 
-Both rows were measured on the same Mac mini M4 (16 GB), the same file, the same task over `/v1/chat/completions`, temperature 0, thinking off. The llama.cpp row ran `llama-server -m Qwen3.6-35B-A3B-UD-Q4_K_M.gguf -ngl 99 -ncmoe 40 -t 4 -c 8448` (experts on the CPU side); the Kraits row ran `llama-server -m Qwen3.6-35B-A3B-UD-Q4_K_M.gguf --device KRAITS -ngl 99 -ot "token_embd=KRAITS" -c 8448 -np 1` with `GGML_BACKEND_PATH` set as in the quick start.
+Both rows were measured on the same Mac mini M4 (16 GB), the same file, the same task over `/v1/chat/completions`, temperature 0, thinking off. The llama.cpp row ran `llama-server -m Qwen3.6-35B-A3B-UD-Q4_K_M.gguf -ngl 99 -ncmoe 40 -t 4 -c 8448` (experts on the CPU side); the Kraits row ran `llama-server -m Qwen3.6-35B-A3B-UD-Q4_K_M.gguf --device KRAITS -ngl 99 -ot "token_embd=KRAITS" -c 8448 -np 1 --cache-ram 0` with `--cache-ram 0` and `GGML_BACKEND_PATH` set as in the quick start.
 
 ## Quick start
 
 ```sh
 cd kraits/bin
-LLAMA_SERVER=/path/to/llama-server ./kraits-server -m Qwen3.6-35B-A3B-UD-Q4_K_M.gguf -c 8448 -np 1
+LLAMA_SERVER=/path/to/llama-server ./kraits-server -m Qwen3.6-35B-A3B-UD-Q4_K_M.gguf -c 8448
 ```
 
 `kraits-server` checks that llama.cpp really loaded the plugin and refuses to start if it did not, so you cannot end up with an ordinary llama.cpp wearing the name. It prints `Kraits loaded` and then runs `llama-server --device KRAITS -ngl 99 -ot "token_embd=KRAITS"` with your flags. Keep the three files in `bin/` together. Kraits serves one request at a time (the launcher sets `-np 1`); a second request waits its turn.

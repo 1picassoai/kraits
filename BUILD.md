@@ -20,7 +20,7 @@ The engine's source is not published; its build records are kept privately and t
 
 ```sh
 cd kraits/bin
-LLAMA_SERVER=/path/to/llama-server ./kraits-server -m Qwen3.6-35B-A3B-UD-Q4_K_M.gguf -c 8448 -np 1
+LLAMA_SERVER=/path/to/llama-server ./kraits-server -m Qwen3.6-35B-A3B-UD-Q4_K_M.gguf -c 8448
 ```
 
 (`LLAMA_SERVER` can be left out when `llama-server` is on your PATH. If the script is not executable after cloning, `chmod +x kraits-server`.) The launcher sets `-np 1` and `--cache-ram 0`: Kraits serves **one request at a time** and keeps the conversation itself (the server's prompt cache is off). A follow-up on the latest answer continues from where it stopped; a follow-up on an older answer is re-read first. Started by hand without either flag, the engine refuses to start (exit 1, `kraits: STOPPED. ...`). If it says `STOPPED`, Kraits did not load and nothing is running; the message names the llama-server version and the build Kraits is tested with.
@@ -38,7 +38,7 @@ llama-server --list-devices      # must list "KRAITS". If it does not, the plugi
 3. Run the model through Kraits. Both flags are required; without `-ot "token_embd=KRAITS"` the plugin has nothing to compute and the first request fails:
 
 ```sh
-llama-server -m Qwen3.6-35B-A3B-UD-Q4_K_M.gguf --device KRAITS -ngl 99 -ot "token_embd=KRAITS" -c 8448 -np 1
+llama-server -m Qwen3.6-35B-A3B-UD-Q4_K_M.gguf --device KRAITS -ngl 99 -ot "token_embd=KRAITS" -c 8448 -np 1 --cache-ram 0
 ```
 
 3b. Starting with `--device KRAITS` and without `-ot "token_embd=KRAITS"`, `-np 1` or `--cache-ram 0` stops at once with `kraits: STOPPED. --device KRAITS also needs: -ot "token_embd=KRAITS"` (exit code 1).
