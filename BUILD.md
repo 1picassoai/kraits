@@ -9,4 +9,4 @@ Built on a Mac mini M4 (16 GB), macOS 15 or later required, Apple silicon only. 
 
 Engine source: Coachwhip, branch `lab/kraits-2010`, commit `e0078a1` (plugin source and release build script; `9021b83` engine library and kernels). Not included here.
 
-Tested (20 Oct 2026, same Mac): stock `llama-server` + stock Unsloth `Qwen3.6-35B-A3B-UD-Q4_K_M.gguf`, `--device KRAITS`: 24.20–25.18 words/s on the LRU-cache task, judge 8/8, against 2.09 words/s for llama.cpp alone on the same file, same task, same API (`-ngl 99 -ncmoe 40 -t 4 -c 8448`), judge 8/8. Full four-agent crew run: 196 s, 8/8.
+Developers' measurements (20 Oct 2026, same Mac; the README carries the release tester's numbers, not these): stock `llama-server` + stock Unsloth `Qwen3.6-35B-A3B-UD-Q4_K_M.gguf`, `--device KRAITS`: 24.20–25.18 words/s on the LRU-cache task, judge 8/8, against 2.09 words/s for llama.cpp alone on the same file, same task, same API (`-ngl 99 -ncmoe 40 -t 4 -c 8448`), judge 8/8. Full four-agent crew run: 196 s, 8/8.

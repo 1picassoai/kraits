@@ -1,13 +1,13 @@
 # Kraits
 
-A plugin that makes stock llama.cpp run the stock Unsloth Qwen3.6-35B-A3B 4-bit file 12x faster on a 16 GB Mac. It changes nothing in llama.cpp and nothing in the model file.
+A plugin that makes stock llama.cpp run the stock Unsloth Qwen3.6-35B-A3B 4-bit file faster on a 16 GB Mac. It changes nothing in llama.cpp and nothing in the model file.
 
 | Same Mac, same file, same task | Writing speed | Judge |
 |---|---|---|
-| llama.cpp | 2.09 words/s | 8/8 |
-| llama.cpp + Kraits | 25.18 words/s | 8/8 |
+| llama.cpp | (tester's number, pending) | (pending) |
+| llama.cpp + Kraits | (tester's number, pending) | (pending) |
 
-The judge is eight executed checks on the TypeScript LRU cache the model writes (temperature 0, thinking off).
+The numbers in this table are measured by the release tester, not by the developers. The judge is eight executed checks on the TypeScript LRU cache the model writes (temperature 0, thinking off).
 
 Both rows were measured on the same Mac mini M4 (16 GB), the same file, the same task over `/v1/chat/completions`, temperature 0, thinking off. The llama.cpp row ran `llama-server -m Qwen3.6-35B-A3B-UD-Q4_K_M.gguf -ngl 99 -ncmoe 40 -t 4 -c 8448` (experts on the CPU side); the Kraits row ran the quick-start command below.
 
