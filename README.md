@@ -35,6 +35,14 @@ LLAMA_SERVER=/path/to/llama-b11715/llama-server ./kraits-server \
 
 It worked if it prints `Kraits loaded`. If the plugin did not load, it stops and says why. The server is llama-server's usual OpenAI-compatible API on port 8080, and it answers one request at a time. More detail is in `BUILD.md`.
 
+## Credits
+
+- [llama.cpp and ggml](https://github.com/ggml-org/llama.cpp), by Georgi Gerganov and contributors (MIT). They supply the server, the tokenizer and the sampling Kraits plugs into.
+- [Candle](https://github.com/huggingface/candle), by Hugging Face and contributors (MIT or Apache 2.0). It's the tensor library under the Kraits engine.
+- [Qwen](https://huggingface.co/Qwen), for the Qwen3.6-35B-A3B model.
+- [Unsloth](https://huggingface.co/unsloth), for the UD-Q4_K_M file Kraits runs.
+- The open-source Rust crates the engine is built with.
+
 ## Licence
 
 Apache 2.0. See `LICENSE` and `NOTICE`.
