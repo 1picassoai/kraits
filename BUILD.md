@@ -2,9 +2,9 @@
 
 | file | bytes | sha256 |
 |---|---|---|
-| bin/libggml-kraits.dylib (the llama.cpp add-in) | 73,728 | df9bb91ced06adfd5db0c5de642391296346e5afd9401d9bf95e994e27ca8d73 |
+| bin/libggml-kraits.dylib (the llama.cpp add-in) | 73,792 | d70bf412b1cb4573e8e500b4f519746b378de6f068eae8c2fb7293e2756cb10b |
 | bin/libkraits.dylib (the Kraits engine) | 9,305,904 | 7433459047b6f381632212c65f2e489c412ed40be6139882a425204401f3688b |
-| bin/kraits-server (the launcher, a shell script) | 1,602 | 4e21e67cca76953fa1dd08e2c36c826a309db33db89a26c792bbde3bcb813e51 |
+| bin/kraits-server (the launcher, a shell script) | 1,719 | ac41413debd10f012b3a0c2612ffab255ce9c12a255bc667e3ffe382bdaf7e65 |
 
 Built on a Mac mini M4 (16 GB), macOS 15 or later required, Apple silicon only. Ad-hoc signed. The plugin finds the engine library beside itself; ggml-base beside llama-server or in /opt/homebrew/lib. Built against llama.cpp `b11715` (commit `9d1878a`, 17 Oct 2026; ggml-base 0.27.0).
 
@@ -23,7 +23,7 @@ cd kraits/bin
 LLAMA_SERVER=/path/to/llama-server ./kraits-server -m Qwen3.6-35B-A3B-UD-Q4_K_M.gguf -c 8448 -np 1
 ```
 
-(`LLAMA_SERVER` can be left out when `llama-server` is on your PATH. If the script is not executable after cloning, `chmod +x kraits-server`.) The launcher sets `-np 1`: Kraits serves **one request at a time**; a second request sent while one is running waits for its turn. Started by hand without `-np 1`, the engine refuses to start (exit 1, `kraits: STOPPED. --device KRAITS also needs: -np 1`). Follow-up requests that continue an earlier conversation work: the engine replays the shared start of the history. If it says `STOPPED`, Kraits did not load and nothing is running; the message names the llama-server version and the build Kraits is tested with.
+(`LLAMA_SERVER` can be left out when `llama-server` is on your PATH. If the script is not executable after cloning, `chmod +x kraits-server`.) The launcher sets `-np 1` and `--cache-ram 0`: Kraits serves **one request at a time** and keeps the conversation itself (the server's prompt cache is off). A follow-up on the latest answer continues from where it stopped; a follow-up on an older answer is re-read first. Started by hand without either flag, the engine refuses to start (exit 1, `kraits: STOPPED. ...`). If it says `STOPPED`, Kraits did not load and nothing is running; the message names the llama-server version and the build Kraits is tested with.
 
 ## How to run it by hand (the exact commands measured; nothing else was)
 
@@ -41,7 +41,7 @@ llama-server --list-devices      # must list "KRAITS". If it does not, the plugi
 llama-server -m Qwen3.6-35B-A3B-UD-Q4_K_M.gguf --device KRAITS -ngl 99 -ot "token_embd=KRAITS" -c 8448 -np 1
 ```
 
-3b. Starting with `--device KRAITS` and without `-ot "token_embd=KRAITS"` (or without `-np 1`) stops at once with `kraits: STOPPED. --device KRAITS also needs: -ot "token_embd=KRAITS"` (exit code 1).
+3b. Starting with `--device KRAITS` and without `-ot "token_embd=KRAITS"`, `-np 1` or `--cache-ram 0` stops at once with `kraits: STOPPED. --device KRAITS also needs: -ot "token_embd=KRAITS"` (exit code 1).
 
 3c. The measured task is `test/task_lru.txt` (the judge in `test/judge.ts` was written for it; see `test/README.md`), sent over `/v1/chat/completions` with thinking switched off in the request body, which is where that switch lives for this model:
 

@@ -20,7 +20,7 @@ LLAMA_SERVER=/path/to/llama-server ./kraits-server -m Qwen3.6-35B-A3B-UD-Q4_K_M.
 
 `kraits-server` checks that llama.cpp really loaded the plugin and refuses to start if it did not, so you cannot end up with an ordinary llama.cpp wearing the name. It prints `Kraits loaded` and then runs `llama-server --device KRAITS -ngl 99 -ot "token_embd=KRAITS"` with your flags. Keep the three files in `bin/` together. Kraits serves one request at a time (the launcher sets `-np 1`); a second request waits its turn.
 
-**Follow-up questions pause first.** When a request continues an earlier conversation, Kraits re-reads that conversation before it answers: on the tested Mac about 23 seconds of silence for a 1,100-token history, then the answer at normal speed. It is working, not hung. The first question of a conversation does not pay this. The by-hand commands, and the exact llama.cpp build this is tested with, are in `BUILD.md`.
+**Follow-ups.** A follow-up on the latest answer continues from where that answer stopped: on the tested Mac about 2 seconds before the first new word. A follow-up on an older answer, or a conversation the server has not seen, is read in first, as plain llama.cpp would read it (about 27 seconds for 820 tokens on the tested Mac). The launcher turns the server's own prompt cache off (`--cache-ram 0`) so a follow-up always continues the right conversation; without that flag Kraits refuses to start. The by-hand commands, and the exact llama.cpp build this is tested with, are in `BUILD.md`.
 
 ## How it works
 
