@@ -28,7 +28,7 @@ llama.cpp keeps its server, its tokenizer and its sampling. Kraits runs the mode
 ## Tested setup
 
 - Mac mini M4, 16 GB, macOS 26.6. Needs macOS 15 or later on Apple Silicon.
-- llama.cpp master at commit `9d1878a` (20 Oct 2026) or newer: the plugin needs the ggml-base 0.27 ABI. Older builds (ggml 0.25) will not load it.
+- llama.cpp `b11715` (commit `9d1878a`, 17 Oct 2026) or newer: the plugin needs the ggml-base 0.27 ABI. Older builds (ggml 0.25) will not load it.
 - Qwen3.6-35B-A3B UD-Q4_K_M from Unsloth (22.13 GB).
 
 ## Licence
