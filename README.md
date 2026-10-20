@@ -14,12 +14,11 @@ Both rows were measured on the same Mac mini M4 (16 GB), the same file, the same
 ## Quick start
 
 ```sh
-export GGML_BACKEND_PATH=/path/to/kraits/bin/libggml-kraits.dylib
-llama-server -m Qwen3.6-35B-A3B-UD-Q4_K_M.gguf \
-  --device KRAITS -ngl 99 -ot "token_embd=KRAITS"
+cd kraits/bin
+LLAMA_SERVER=/path/to/llama-server ./kraits-server -m Qwen3.6-35B-A3B-UD-Q4_K_M.gguf -c 8448 -np 1
 ```
 
-Keep `libkraits.dylib` in the same folder as `libggml-kraits.dylib`. Check it loaded: `llama-server --list-devices` must list `KRAITS`; if it does not, llama.cpp is running without the plugin and will say nothing. Both `--device KRAITS` and `-ot "token_embd=KRAITS"` are required.
+`kraits-server` checks that llama.cpp really loaded the plugin and refuses to start if it did not, so you cannot end up with an ordinary llama.cpp wearing the name. It prints `Kraits loaded` and then runs `llama-server --device KRAITS -ngl 99 -ot "token_embd=KRAITS"` with your flags. Keep the three files in `bin/` together. The by-hand commands, and the exact llama.cpp build this is tested with, are in `BUILD.md`.
 
 ## How it works
 

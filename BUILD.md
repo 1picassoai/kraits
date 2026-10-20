@@ -13,7 +13,18 @@ Engine source: Coachwhip, branch `lab/kraits-2010`, commit `fcd8c03` (plugin ref
 
 `Qwen3.6-35B-A3B-UD-Q4_K_M.gguf` from https://huggingface.co/unsloth/Qwen3.6-35B-A3B-GGUF (branch main), 22,134,528,992 bytes. No other file was measured. The separate "MTP" build from Unsloth's other repo is not this file.
 
-## How to run it (the exact commands measured; nothing else was)
+## The short way: the launcher
+
+`bin/kraits-server` sits beside the two binaries. It sets the plugin path from its own folder, checks that llama.cpp actually listed KRAITS, stops with exit 1 and the reason if not, and otherwise prints `Kraits loaded` and starts `llama-server` with the required flags:
+
+```sh
+cd kraits/bin
+LLAMA_SERVER=/path/to/llama-server ./kraits-server -m Qwen3.6-35B-A3B-UD-Q4_K_M.gguf -c 8448 -np 1
+```
+
+(`LLAMA_SERVER` can be left out when `llama-server` is on your PATH.) If it says `STOPPED`, Kraits did not load and nothing is running; the message names the llama-server version and the build Kraits is tested with.
+
+## How to run it by hand (the exact commands measured; nothing else was)
 
 1. Put `libggml-kraits.dylib` and `libkraits.dylib` in one folder. Keep `llama-server` and its own `libggml-*.dylib` files together as they came.
 2. Tell llama.cpp where the plugin is, every time, with the environment variable. Without it llama.cpp runs as plain llama.cpp and says nothing:

@@ -1,0 +1,36 @@
+#!/bin/bash
+# kraits-server: run llama-server through Kraits, and refuse to run without it.
+# Usage: ./kraits-server -m <model.gguf> [any other llama-server flags]
+# Finds libggml-kraits.dylib beside this script, checks llama.cpp really loaded it, then starts
+# llama-server with the flags Kraits needs. If Kraits did not load, it stops and says why.
+set -u
+HERE="$(cd "$(dirname "$0")" && pwd)"
+PLUGIN="$HERE/libggml-kraits.dylib"
+SERVER="${LLAMA_SERVER:-llama-server}"
+
+if [ ! -f "$PLUGIN" ]; then
+  echo "kraits-server: $PLUGIN not found. Keep kraits-server, libggml-kraits.dylib and libkraits.dylib in one folder." >&2
+  exit 1
+fi
+if [ ! -f "$HERE/libkraits.dylib" ]; then
+  echo "kraits-server: $HERE/libkraits.dylib not found. The plugin needs the engine library beside it." >&2
+  exit 1
+fi
+if ! command -v "$SERVER" >/dev/null 2>&1; then
+  echo "kraits-server: llama-server not found on PATH. Set LLAMA_SERVER=/path/to/llama-server." >&2
+  exit 1
+fi
+
+export GGML_BACKEND_PATH="$PLUGIN"
+DEVICES="$("$SERVER" --list-devices 2>&1)"
+if ! printf '%s\n' "$DEVICES" | grep -q "KRAITS"; then
+  echo "kraits-server: STOPPED. llama.cpp did not load the Kraits plugin." >&2
+  echo "  llama-server: $("$SERVER" --version 2>&1 | head -1)" >&2
+  echo "  Kraits is tested with llama.cpp b11715 (commit 9d1878a); other builds may not load it." >&2
+  echo "  Devices llama.cpp sees:" >&2
+  printf '%s\n' "$DEVICES" | sed 's/^/    /' >&2
+  exit 1
+fi
+
+echo "kraits-server: Kraits loaded ($PLUGIN)"
+exec "$SERVER" --device KRAITS -ngl 99 -ot "token_embd=KRAITS" "$@"
