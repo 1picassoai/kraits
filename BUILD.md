@@ -31,7 +31,7 @@ llama-server -m Qwen3.6-35B-A3B-UD-Q4_K_M.gguf --device KRAITS -ngl 99 -ot "toke
 
 3b. Starting with `--device KRAITS` and without `-ot "token_embd=KRAITS"` now stops at once with `kraits: STOPPED. --device KRAITS also needs: -ot "token_embd=KRAITS"` (exit code 1).
 
-3c. The measured task was sent over `/v1/chat/completions` with thinking switched off in the request body, which is where that switch lives for this model:
+3c. The measured task is `test/task_lru.txt` (the judge in `test/judge.ts` was written for it; see `test/README.md`), sent over `/v1/chat/completions` with thinking switched off in the request body, which is where that switch lives for this model:
 
 ```json
 {"messages":[{"role":"user","content":"<the task>"}],"max_tokens":3000,"temperature":0,"chat_template_kwargs":{"enable_thinking":false}}
@@ -47,4 +47,4 @@ llama-server -m Qwen3.6-35B-A3B-UD-Q4_K_M.gguf -ngl 99 -ncmoe 40 -t 4 -c 8448
 
 The plugin links `libggml-base` ABI 0.27 and is tested only with llama.cpp **b11715** (commit `9d1878a`, 17 Oct 2026). Other builds are not tested and may not load it: plugins use llama.cpp's internal backend structures, which can change in any build. An older llama.cpp (for example b11220, ggml 0.25) does not load it; `--list-devices` will not show KRAITS. Check with `llama-server --version`.
 
-Developers' measurements (20 Oct 2026, same Mac; the README carries the release tester's numbers, not these): stock `llama-server` + stock Unsloth `Qwen3.6-35B-A3B-UD-Q4_K_M.gguf`, `--device KRAITS`: 24.20–25.18 words/s on the LRU-cache task, judge 8/8, against 2.09 words/s for llama.cpp alone on the same file, same task, same API (the control command above), judge 8/8. Full four-agent crew run: 196 s, 8/8.
+Reproduced from this file, by someone who did not write it (20 Oct 2026, fresh folder on the same Mac, the repo's own binaries, `test/task_lru.txt` as the prompt, `test/judge.ts` as the judge): **25.36 words/s, judge 8/8** (792 words). Developers' lab measurements before that, same Mac: 24.20–25.18 words/s, 8/8; against 2.09 words/s for llama.cpp alone on the same file, same task, same API (the control command above), judge 8/8. Full four-agent crew run: 196 s, 8/8. The README carries the release tester's numbers, not these.
