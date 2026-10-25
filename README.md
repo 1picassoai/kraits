@@ -2,7 +2,7 @@
 
 ![A llama and a striped krait sharing sandwiches on a picnic blanket, beside a basket marked SSD and a Mac mini](docs/kraits-picnic.png)
 
-An open-source plugin for stock llama.cpp that runs mixture-of-experts models bigger than a 16 GB Mac's GPU can hold. It changes nothing in llama.cpp and nothing in the model file. The engine inside it is [Coachwhip](https://github.com/1picassoai/coachwhip), Apache 2.0.
+A plugin for stock llama.cpp that runs mixture-of-experts models bigger than a 16 GB Mac's GPU can hold. It changes nothing in llama.cpp and nothing in the model file.
 
 ## New in 0.3.0: Gemma 4 26B-A4B
 
@@ -33,7 +33,6 @@ You need an Apple silicon Mac with 16 GB or more on macOS 15 or later, and llama
 
 ## Credits
 
-- [Coachwhip](https://github.com/1picassoai/coachwhip), the engine inside Kraits (Apache 2.0).
 - [llama.cpp and ggml](https://github.com/ggml-org/llama.cpp), by Georgi Gerganov and contributors (MIT).
 - [Candle](https://github.com/huggingface/candle), by Hugging Face and contributors (MIT or Apache 2.0).
 - [Gemma](https://huggingface.co/google/gemma-4-26B-A4B-it-qat-q4_0-gguf), by Google DeepMind, for Gemma 4 26B-A4B and its 4-bit file.
