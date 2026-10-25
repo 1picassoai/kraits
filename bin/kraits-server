@@ -22,6 +22,8 @@ if ! command -v "$SERVER" >/dev/null 2>&1; then
 fi
 
 export GGML_BACKEND_PATH="$PLUGIN"
+# Gemma 4 runs with the heat map beside this script: each layer's 80 hottest experts go to the GPU at load.
+export KRAITS_HOT="${KRAITS_HOT:-$HERE/gemma4-26b-a4b-heat.txt}"
 DEVICES="$("$SERVER" --list-devices 2>&1)"
 if ! printf '%s\n' "$DEVICES" | grep -q "KRAITS"; then
   echo "kraits-server: STOPPED. llama.cpp did not load the Kraits plugin." >&2
@@ -32,5 +34,15 @@ if ! printf '%s\n' "$DEVICES" | grep -q "KRAITS"; then
   exit 1
 fi
 
-echo "kraits-server: Kraits loaded ($PLUGIN). One request at a time (one server slot); the server's prompt cache is off (--cache-ram 0) so a follow-up continues from the right conversation."
+# Exact mode is the default: every expert is waited for, so the same prompt gives the same answer every time
+# (about 9.6 tokens/s writing on the tested Mac). KRAITS_FAST=1 turns on the fast mode (about 2x), which skips
+# experts that arrive late: it is not deterministic, and about 1 answer in 4 or 5 has a one-token slip.
+if [ "${KRAITS_FAST:-0}" = "1" ]; then
+  export KRAITS_NOWAIT=1
+  MODE="fast mode (KRAITS_FAST=1): not deterministic, about 1 answer in 4 or 5 has a one-token slip"
+else
+  export KRAITS_NOWAIT=0
+  MODE="exact mode: every expert waited for, the same answer every time"
+fi
+echo "kraits-server: Kraits loaded ($PLUGIN). $MODE. One request at a time (one server slot); the server's prompt cache is off (--cache-ram 0) so a follow-up continues from the right conversation."
 exec "$SERVER" --device KRAITS -ngl 99 -ot "token_embd=KRAITS" -np 1 --cache-ram 0 "$@"
