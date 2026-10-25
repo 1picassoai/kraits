@@ -4,9 +4,9 @@
 
 A plugin for stock llama.cpp that runs mixture-of-experts models bigger than a 16 GB Mac's GPU can hold. It changes nothing in llama.cpp and nothing in the model file.
 
-## New in 0.3.0: Gemma 4 26B-A4B
+## New in 0.3.0: Gemma 4 26B-A4B, TypeScript edition
 
-Kraits runs Google's own 14.4 GB Gemma 4 file on a 16 GB Mac. It ships a heat map of the experts each layer uses most, and puts the hottest 80 per layer on the GPU at load, so nothing is read from the SSD while it writes.
+Kraits runs Google's own 14.4 GB Gemma 4 file on a 16 GB Mac, for TypeScript coding. It ships a heat map of the experts each layer uses most on TypeScript work, and puts the hottest 80 per layer on the GPU at load, so nothing is read from the SSD while it writes.
 
 Measured by the release tester on a Mac mini M4 with 16 GB, 25 Oct 2026, thinking off, temperature 0: reading 105 tokens/s, writing 31 to 33 tokens/s. Five judged TypeScript tasks (strict compile plus tests) scored 33 of 40; the weakest, a Jest test suite, scored 2 of 8. The same prompt twice gave byte-identical answers.
 
@@ -15,7 +15,7 @@ cd kraits/bin
 ./kraits-server -m /path/to/gemma-4-26B_q4_0-it.gguf -c 8192 --reasoning off
 ```
 
-The model is `gemma-4-26B_q4_0-it.gguf` (14,439,363,584 bytes) from https://huggingface.co/google/gemma-4-26B-A4B-it-qat-q4_0-gguf. For chats past 8K tokens, start with `KRAITS_HOT_N=64` and `-c 24576`: it fits more chat memory but keeps fewer experts, and quality drops on long coding tasks. The heat map was drawn from TypeScript prompts, so other work is not yet measured.
+The model is `gemma-4-26B_q4_0-it.gguf` (14,439,363,584 bytes) from https://huggingface.co/google/gemma-4-26B-A4B-it-qat-q4_0-gguf. For chats past 8K tokens, start with `KRAITS_HOT_N=64` and `-c 24576`: it fits more chat memory but keeps fewer experts, and quality drops on long coding tasks.
 
 ## Qwen3.6-35B-A3B
 
