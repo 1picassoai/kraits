@@ -1,48 +1,16 @@
 #!/bin/bash
-# kraits-server: run llama-server through Kraits, and refuse to run without it.
-# Usage: ./kraits-server -m <model.gguf> [any other llama-server flags]
-# Finds libggml-kraits.dylib beside this script, checks llama.cpp really loaded it, then starts
-# llama-server with the flags Kraits needs. If Kraits did not load, it stops and says why.
-set -u
-HERE="$(cd "$(dirname "$0")" && pwd)"
-PLUGIN="$HERE/libggml-kraits.dylib"
-SERVER="${LLAMA_SERVER:-llama-server}"
-
-if [ ! -f "$PLUGIN" ]; then
-  echo "kraits-server: $PLUGIN not found. Keep kraits-server, libggml-kraits.dylib and libkraits.dylib in one folder." >&2
-  exit 1
-fi
-if [ ! -f "$HERE/libkraits.dylib" ]; then
-  echo "kraits-server: $HERE/libkraits.dylib not found. The plugin needs the engine library beside it." >&2
-  exit 1
-fi
-if ! command -v "$SERVER" >/dev/null 2>&1; then
-  echo "kraits-server: llama-server not found on PATH. Set LLAMA_SERVER=/path/to/llama-server." >&2
-  exit 1
-fi
-
-export GGML_BACKEND_PATH="$PLUGIN"
-# Gemma 4 runs with the heat map beside this script: each layer's 80 hottest experts go to the GPU at load.
-export KRAITS_HOT="${KRAITS_HOT:-$HERE/gemma4-26b-a4b-heat.txt}"
-DEVICES="$("$SERVER" --list-devices 2>&1)"
-if ! printf '%s\n' "$DEVICES" | grep -q "KRAITS"; then
-  echo "kraits-server: STOPPED. llama.cpp did not load the Kraits plugin." >&2
-  echo "  llama-server: $("$SERVER" --version 2>&1 | head -1)" >&2
-  echo "  Kraits is tested with llama.cpp b11715 (commit 9d1878a); other builds may not load it." >&2
-  echo "  Devices llama.cpp sees:" >&2
-  printf '%s\n' "$DEVICES" | sed 's/^/    /' >&2
-  exit 1
-fi
-
-# Exact mode is the default: every expert is waited for, so the same prompt gives the same answer every time
-# (about 9.6 tokens/s writing on the tested Mac). KRAITS_FAST=1 turns on the fast mode (about 2x), which skips
-# experts that arrive late: it is not deterministic, and about 1 answer in 4 or 5 has a one-token slip.
-if [ "${KRAITS_FAST:-0}" = "1" ]; then
-  export KRAITS_NOWAIT=1
-  MODE="fast mode (KRAITS_FAST=1): not deterministic, about 1 answer in 4 or 5 has a one-token slip"
-else
-  export KRAITS_NOWAIT=0
-  MODE="exact mode: every expert waited for, the same answer every time"
-fi
-echo "kraits-server: Kraits loaded ($PLUGIN). $MODE. One request at a time (one server slot); the server's prompt cache is off (--cache-ram 0) so a follow-up continues from the right conversation."
-exec "$SERVER" --device KRAITS -ngl 99 -ot "token_embd=KRAITS" -np 1 --cache-ram 0 "$@"
+# Kraits 0.6.16 for llama.cpp b11936 (macOS, Apple silicon).
+# Usage: ./kraits-server.sh /path/to/model.gguf [port]
+# The model's expert list, <model>.kraits-pins.txt, must sit next to the .gguf.
+D="$(cd "$(dirname "$0")" && pwd)"
+M="${1:?usage: ./kraits-server.sh /path/to/model.gguf [port]}"
+P="${2:-8080}"
+export GGML_BACKEND_PATH="$D/libggml-kraits.dylib"
+export KRAITS_EXPERTS=1 KRAITS_GPU_BANK=0 KRAITS_WORD_SPLIT=0
+export KRAITS_READ_METAL=1 KRAITS_KBT_METAL=1 KRAITS_NO_REFILL=1 KRAITS_READ_COMPACT=1
+export KRAITS_WIRE=1 KRAITS_BANK_BUDGET=8.8 KRAITS_WIRE_BANK=1 KRAITS_BANK_READ=1
+export KRAITS_SPLIT=1 KRAITS_FETCH1=2 KRAITS_GGUF="$M"
+exec "$D/llama-server" -m "$M" -ngl 99 -nr -fit off --no-warmup --device KRAITS,MTL0 --main-gpu 1 -sm layer -ts 0,1 \
+    -ot exps.weight=KRAITS -t 4 -c 1536 -fa on -np 1 -ub 256 -b 256 --ctx-checkpoints 0 --cache-ram 0 \
+    --temp 0.0 --repeat-penalty 1.0 --dry-multiplier 0.5 --dry-base 1.75 --dry-allowed-length 12 \
+    --host 127.0.0.1 --port "$P" --reasoning off
