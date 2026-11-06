@@ -1,4 +1,4 @@
-# Kraits 0.6.16 - what is in bin/ and where it came from
+# Kraits 0.6.17 - what is in bin/ and where it came from
 
 | file | bytes | sha256 |
 |---|---|---|
@@ -12,7 +12,7 @@ Built on a Mac mini M4 (16 GB), macOS 15 or later required, Apple silicon only. 
 
 ## The model file
 
-Kraits 0.6.16 runs one file and refuses any other, checking the file's exact byte size and two 1 MiB FNV-1a fingerprints of its weights (`64 MiB` offset = `0x6c4cbc0769e989ac`, `11 GiB` offset = `0x11032d6407ce0257`):
+Kraits 0.6.17 runs one file and refuses any other, checking the file's exact byte size and two 1 MiB FNV-1a fingerprints of its weights (`64 MiB` offset = `0x6c4cbc0769e989ac`, `11 GiB` offset = `0x11032d6407ce0257`):
 
 - `Ling-3.0-flash-TS128-Q4_K_M.gguf` (https://huggingface.co/vinnj/Ling-3.0-flash-TypeScript-Edition-GGUF), exactly `20,395,487,680` bytes (`sha256: e9ae4335a36ed49e8262add1099459a807692edb18c6252ba855f0923c52f602`).
 
@@ -22,11 +22,11 @@ Kraits 0.6.16 runs one file and refuses any other, checking the file's exact byt
 
 ## The short way: the release bundle and launcher
 
-This git repository holds the Kraits plugin libraries and launcher script, not `llama-server`. Download the complete release archive `kraits-v0.6.16-macos-arm64.tar.gz` from https://github.com/1picassoai/kraits/releases/tag/v0.6.16 (which bundles `llama-server`, the `ggml` libraries, the Kraits `0.6.16` plugin, and the pin list) and start it with `kraits-server.sh`:
+This git repository holds the Kraits plugin libraries and launcher script, not `llama-server`. Download the complete release archive `kraits-v0.6.17-macos-arm64.tar.gz` from https://github.com/1picassoai/kraits/releases/tag/v0.6.17 (which bundles `llama-server`, the `ggml` libraries, the Kraits `0.6.17` plugin, and the pin list) and start it with `kraits-server.sh`:
 
 ```sh
-tar -xzf kraits-v0.6.16-macos-arm64.tar.gz
-./release-0616/kraits-server.sh /path/to/Ling-3.0-flash-TS128-Q4_K_M.gguf 8080
+tar -xzf kraits-v0.6.17-macos-arm64.tar.gz
+./release-0617/kraits-server.sh /path/to/Ling-3.0-flash-TS128-Q4_K_M.gguf 8080
 ```
 
 The README carries the release tester's numbers.
