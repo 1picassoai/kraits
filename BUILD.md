@@ -18,7 +18,7 @@ Kraits 0.6.17 runs one file and refuses any other, checking the file's exact byt
 
 ## The expert pin list
 
-`Ling-3.0-flash-TS128-Q4_K_M.kraits-pins.txt` has one line per MoE layer (`2` through `40`): the layer number, then that layer's 128 experts ranked hottest first from TypeScript coding prompts. At load Kraits pins an 8.8 GB bank of the hottest experts in wired GPU memory (`mlock`) and streams cold experts from the SSD. Keep `Ling-3.0-flash-TS128-Q4_K_M.kraits-pins.txt` in the same folder as `Ling-3.0-flash-TS128-Q4_K_M.gguf`.
+`Ling-3.0-flash-TS128-Q4_K_M.kraits-pins.txt` has one line per MoE layer (`2` through `40`): the layer number, then that layer's 128 experts ranked hottest first from TypeScript coding prompts. At load Kraits pins an 9.6 GB bank of the hottest experts in wired GPU memory (`mlock`) and streams cold experts from the SSD. Keep `Ling-3.0-flash-TS128-Q4_K_M.kraits-pins.txt` in the same folder as `Ling-3.0-flash-TS128-Q4_K_M.gguf`.
 
 ## The short way: the release bundle and launcher
 
