@@ -40,7 +40,7 @@ cp ./release-0617/Ling-3.0-flash-TS128-Q4_K_M.kraits-pins.txt .
 ./release-0617/kraits-server.sh ./Ling-3.0-flash-TS128-Q4_K_M.gguf 8080
 ```
 
-Check the model file with `shasum -a 256 Ling-3.0-flash-TS128-Q4_K_M.gguf`: it must print `e9ae4335a36ed49e8262add1099459a807692edb18c6252ba855f0923c52f602` (20,395,487,680 bytes). Check the pin list with `shasum -a 256 Ling-3.0-flash-TS128-Q4_K_M.kraits-pins.txt`: it must print `b430f9b0366c51c5be4ed5e0465ae2f69cb61de1661b48155a93cf1f8459e306` (16,595 bytes).
+Check the model file with `shasum -a 256 Ling-3.0-flash-TS128-Q4_K_M.gguf`: it must print `e9ae4335a36ed49e8262add1099459a807692edb18c6252ba855f0923c52f602` (20,395,487,680 bytes). Check the pin list with `shasum -a 256 Ling-3.0-flash-TS128-Q4_K_M.kraits-pins.txt`: it must print `b430f9b004cc6ea5da2f84aba52ab90e7be5c378a4985886d9ba67515b7f5a23` (16,192 bytes).
 
 ## Before you start
 
