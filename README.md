@@ -10,7 +10,7 @@ A plugin for llama.cpp that runs mixture-of-experts models bigger than a 16 GB M
 
 Kraits 0.6.17 runs the 20.4 GB `Ling-3.0-flash-TS128-Q4_K_M.gguf` (20,395,487,680 bytes, cut from 512 to 128 experts per MoE layer from InclusionAI's [`inclusionAI/Ling-3.0-flash`](https://huggingface.co/inclusionAI/Ling-3.0-flash)) on a 16 GB Mac for TypeScript coding. It ships its own expert pin list inside the release tarball (`release-0617/Ling-3.0-flash-TS128-Q4_K_M.kraits-pins.txt`), locks a 9.6 GB bank of the hottest experts in wired GPU memory at load, refills the bank's tail slots from each prompt's expert picks, and streams cold experts from the SSD.
 
-Measured by the release tester, Mac mini M4 16 GB, Fri 6 Nov 2026, temperature 0, launcher as shipped: writing 19.6 to 20.7 tokens/s (mean 20.4), reading 37 to 45 tokens/s (with a live `100% -> 0%` progress countdown on `stderr`).
+Measured by the release tester, Mac mini M4 16 GB, Fri 6 Nov 2026, temperature 0, launcher as shipped: writing 19.6 to 20.7 tokens/s (mean 20.4; writing 19 to 20 tokens/s in whole numbers), reading 37 to 45 tokens/s (with a live `100% -> 0%` progress countdown on `stderr`).
 
 | Task | Ling TS128 + Kraits 0.6.17 | gpt-5-mini |
 |---|---:|---:|
