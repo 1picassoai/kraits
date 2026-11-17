@@ -1,6 +1,6 @@
 # Kraits Repo Adaptor (`kraits-adaptor`)
 
-Zero-dependency Rust AST indexer, KV-prefix lock proxy, loop-guarded coding-agent loop, and minimalist web UI (`/`). Designed to wrap local OpenAI-compatible inference servers (such as `llama-server` / Kraits) so small quantized local models stop looping on repository tasks.
+Zero-dependency Rust AST indexer, KV-prefix lock proxy, loop-guarded coding-agent loop, and minimalist web UI (`/`). **Model-agnostic:** works in front of any OpenAI-compatible `/v1/chat/completions` server (`llama-server --jinja`, Ollama, LM Studio, vLLM, etc.) with whichever LLM you prefer.
 
 ## Build & Test
 
@@ -14,7 +14,10 @@ cargo build --release
 
 The compiled binary is written to `target/release/kraits-adaptor` (`target\release\kraits-adaptor.exe` on Windows).
 
-## Serve Command & Flags
+## Quick Start (`serve`)
+
+1. Start any OpenAI-compatible inference server with tool calling enabled (for example `llama-server --jinja` on `http://127.0.0.1:8099`) using **any model you want**.
+2. Point `kraits-adaptor` at your local Git repository and open `http://127.0.0.1:8100`:
 
 ```sh
 kraits-adaptor serve --repo <dir> [--listen 127.0.0.1:8100] [--upstream http://127.0.0.1:8099]
@@ -24,7 +27,7 @@ kraits-adaptor serve --repo <dir> [--listen 127.0.0.1:8100] [--upstream http://1
 | --- | --- | --- |
 | `--repo <dir>` | `.` | Path to the single locked target Git repository |
 | `--listen <host:port>` | `127.0.0.1:8100` | Local HTTP bind address for UI, `/kraits/*`, and `/v1/chat/completions` |
-| `--upstream <url>` | `http://127.0.0.1:8099` | Upstream OpenAI-compatible `/v1/chat/completions` server |
+| `--upstream <url>` | `http://127.0.0.1:8099` | Any OpenAI-compatible `/v1/chat/completions` upstream URL |
 
 ### Other CLI Subcommands
 
@@ -37,13 +40,13 @@ kraits-adaptor query  --repo <dir> <query> [--budget <chars>]
 kraits-adaptor learn  --repo <dir> --kind <kind> --sig <sig> --detail <detail> [--file <rel>]
 ```
 
-## Tested Model & Verified Scope (`v0.6.28`)
+## Example Tested Configuration (`v0.6.28`)
 
-- **Model tested:** `Qwen3.8-Flash-Next-IQ4_XS` served locally (`-c 10240` context) on a 16 GB Mac (`16.5–17.7 tok/s` decode, zero cloud APIs).
-- **Verified benchmark (`pallets/flask`, 83 indexed files):**
-  - Signed `v0.6.28` (`kraits-adaptor.exe`): **`4 of 4`** planted single-function Python bugs fixed and `pytest`-verified in **`73–189 s`** (`4–9` turns), KV prefix `cache_n = 988` on Turn 1.
-  - Across `v0.6.21–v0.6.28`: **`23 of 26`** planted single-function bug runs green.
-  - **Known limits:** Multi-file feature generation and real open GitHub issues (`#6123`) remain **`0 of 7`** at this model size and 10K context.
+The adaptor is not tied to any model; our `v0.6.28` release checks were benchmarked on:
+
+| Model Tested | Hardware / Context | Planted Single-Function Bugs (`pallets/flask`) | Multi-File Features / Open Issues | Decode Speed |
+| --- | --- | --- | --- | --- |
+| `Qwen3.8-Flash-Next-IQ4_XS` | 16 GB Mac (`-c 10240`) | **`4/4`** signed (`73–189 s`, `4–9` turns); **`23/26`** across `v0.6.21–v0.6.28` | **`0/7`** (`#6123` / `feat1`) | `16.5–17.7 tok/s` |
 
 ## Endpoints & Web UI
 
