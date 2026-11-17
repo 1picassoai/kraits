@@ -1,6 +1,6 @@
 # Kraits Repo Adaptor (`kraits-adaptor`)
 
-Zero-dependency Rust AST indexer, KV-prefix lock proxy, loop-guarded coding-agent loop, and minimalist web UI (`/`). **Model-agnostic:** works in front of any OpenAI-compatible `/v1/chat/completions` server (`llama-server --jinja`, Ollama, LM Studio, vLLM, etc.) with whichever LLM you prefer.
+Zero-dependency Rust AST indexer, KV-prefix lock proxy, loop-guarded coding-agent loop, and minimalist web UI (`/`).
 
 ## Build & Test
 
@@ -16,7 +16,7 @@ The compiled binary is written to `target/release/kraits-adaptor` (`target\relea
 
 ## Quick Start (`serve`)
 
-1. Start any OpenAI-compatible inference server with tool calling enabled (for example `llama-server --jinja` on `http://127.0.0.1:8099`) using **any model you want**.
+1. Start `llama-server --jinja` on `http://127.0.0.1:8099`.
 2. Point `kraits-adaptor` at your local Git repository and open `http://127.0.0.1:8100`:
 
 ```sh
@@ -27,7 +27,7 @@ kraits-adaptor serve --repo <dir> [--listen 127.0.0.1:8100] [--upstream http://1
 | --- | --- | --- |
 | `--repo <dir>` | `.` | Path to the single locked target Git repository |
 | `--listen <host:port>` | `127.0.0.1:8100` | Local HTTP bind address for UI, `/kraits/*`, and `/v1/chat/completions` |
-| `--upstream <url>` | `http://127.0.0.1:8099` | Any OpenAI-compatible `/v1/chat/completions` upstream URL |
+| `--upstream <url>` | `http://127.0.0.1:8099` | `llama-server` URL |
 
 ### Other CLI Subcommands
 
@@ -40,9 +40,9 @@ kraits-adaptor query  --repo <dir> <query> [--budget <chars>]
 kraits-adaptor learn  --repo <dir> --kind <kind> --sig <sig> --detail <detail> [--file <rel>]
 ```
 
-## Example Tested Configuration (`v0.6.28`)
+## Tested Configuration (`v0.6.28`)
 
-The adaptor is not tied to any model; our `v0.6.28` release checks were benchmarked on:
+Tested with:
 
 | Model Tested | Hardware / Context | Planted Single-Function Bugs (`pallets/flask`) | Multi-File Features / Open Issues | Decode Speed |
 | --- | --- | --- | --- | --- |
@@ -53,7 +53,7 @@ The adaptor is not tied to any model; our `v0.6.28` release checks were benchmar
 | Method & Path | Purpose |
 | --- | --- |
 | `GET /` or `GET /ui` | Single-column chat & diff web UI |
-| `POST /v1/chat/completions` | OpenAI-compatible chat completions proxy with repo context injection |
+| `POST /v1/chat/completions` | Chat completions proxy with repo context injection |
 | `GET /kraits/repo` | Repo version, indexed AST files, active task ID, and served request count |
 | `GET /kraits/file?path=<rel>` | Line count and AST symbol skeleton for an indexed file |
 | `GET /kraits/memory` | Persisted `.kraits/` episodic lessons and hot-file counts |
@@ -62,3 +62,5 @@ The adaptor is not tied to any model; our `v0.6.28` release checks were benchmar
 | `POST /kraits/task` | Start an agent task (`{"prompt": "..."}`) -> returns `{"task_id": "..."}` |
 | `GET /kraits/task?id=<task_id>` | Poll task status, turn traces, git diff, and final summary |
 | `POST /kraits/demo` | Demo harness (`{"action": "bug1"\|"bug2"\|"feat1"\|"reset"\|"pytest", "target": "..."}`) |
+
+*Note: The `bug1`, `bug2`, and `feat1` demo actions assume a `pallets/flask` checkout.*
