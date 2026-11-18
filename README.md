@@ -4,17 +4,30 @@
 
 A plugin for `llama.cpp` that runs mixture-of-experts models bigger than a 16 GB Mac's GPU can hold, together with **`kraits-adaptor`** — a zero-dependency AST indexer, KV-prefix lock proxy, and loop-guarded coding-agent harness.
 
-## Kraits Repo Adaptor (`v0.6.28` — `kraits-adaptor/`)
+## How to Get Started
 
-Zero-dependency local harness that sits in front of `llama-server` (`llama.cpp`, `--jinja`) to stop coding-agent loops on real repositories:
+- **Documentation & Guides:** **[Kraits Wiki](https://github.com/1picassoai/kraits/wiki)** (setup, architecture, loop-control gates, and tested results)
+- **Adaptor CLI & Endpoints:** [`kraits-adaptor/README.md`](kraits-adaptor/README.md) (`cargo test --release`, `cargo build --release`, `serve` flags, and `/kraits/*` API)
+- **Latest Release:** **[Kraits v0.6.28 — Repo Adaptor](https://github.com/1picassoai/kraits/releases/tag/v0.6.28)** (signed tag `v0.6.28`, prebuilt Windows binary SHA-256 `EE9F71CB`)
+- **macOS `llama.cpp` Plugin (`bin/`):** See [`BUILD.md`](BUILD.md) (previous macOS release tarball: [v0.6.17](https://github.com/1picassoai/kraits/releases/tag/v0.6.17))
 
-- **Build & Run:** See [`kraits-adaptor/README.md`](kraits-adaptor/README.md) (`cargo test --release`, `cargo build --release`, `kraits-adaptor serve --repo <dir> --listen 127.0.0.1:8100 --upstream http://127.0.0.1:8099`).
-- **Loop & Hallucination Gates:** AST symbol slicing (`ast_symbol`), KV-prefix lock (`cache_n = 988` on Turn 1), pre-tool path/symbol/command validation, `64`-token no-tool stream cutoff, cached repeat replies, auto-`pytest` verification after 2 edits, and summary quality gates.
-- **Tested Benchmark (`pallets/flask`, 83 files, `Qwen3.8-Flash-Next-IQ4_XS` on 16 GB Mac `-c 10240`, `16.5–17.7 tok/s`):** **`4/4`** planted single-function Python bugs fixed & `pytest`-verified on signed `v0.6.28` (**`73–189 s`**, `4–9` turns), **`23/26`** across `v0.6.21–v0.6.28`; multi-file features and real open issues (`#6123`) remain **`0/7`**.
+### Quick Start (`kraits-adaptor`)
 
-## macOS Engine Plugin (`bin/` & `BUILD.md`)
+1. Start `llama-server --jinja` on `http://127.0.0.1:8099`.
+2. Build and launch `kraits-adaptor` against your local Git repository, then open `http://127.0.0.1:8100`:
 
-Prebuilt Apple Silicon dylibs and `llama.cpp` build notes live in `bin/` and [`BUILD.md`](BUILD.md) (previous macOS release bundle: [v0.6.17](https://github.com/1picassoai/kraits/releases/tag/v0.6.17)). Runs locally via `llama-server` OpenAI-compatible HTTP API with nothing leaving the machine.
+```sh
+cd kraits-adaptor
+cargo build --release
+./target/release/kraits-adaptor serve --repo /path/to/your/repo --listen 127.0.0.1:8100 --upstream http://127.0.0.1:8099
+```
+
+## Verified Benchmark (`v0.6.28`, `pallets/flask`)
+
+Tested with `llama-server --jinja` and `Qwen3.8-Flash-Next-IQ4_XS` on a 16 GB Mac (`-c 10240`, `16.5–17.7 tok/s`, 83 indexed Python files):
+
+- **Planted single-function Python bugs:** **`4/4`** green on signed `v0.6.28` (**`73–189 s`**, `4–9` turns, KV prefix `cache_n = 988`); **`23/26`** across `v0.6.21–v0.6.28`.
+- **Known limits:** Multi-file features and real open GitHub issues (`#6123`) remain **`0/7`** at this model size and 10K context.
 
 ## Credits
 
