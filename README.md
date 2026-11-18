@@ -4,6 +4,20 @@
 
 A plugin for `llama.cpp` that runs mixture-of-experts models bigger than a 16 GB Mac's GPU can hold, together with **`kraits-adaptor`** — a zero-dependency AST indexer, KV-prefix lock proxy, and loop-guarded coding-agent harness.
 
+## How It Works
+
+```mermaid
+flowchart TD
+    S1["1. You send a bug-fix request to kraits-adaptor (Kraits UI or /v1/chat/completions)"]
+    S2["2. kraits-adaptor reads your repo's real files and functions"]
+    S3["3. It asks llama-server (your local LLM) for a fix and blocks loops or fake paths"]
+    S4["4. It applies the edit and runs pytest on your repo"]
+    S5["5. You get a verified git diff and passing test summary"]
+
+    S1 --> S2 --> S3 --> S4 --> S5
+    S4 -. "If tests fail, retry safely" .-> S3
+```
+
 ## How to Get Started
 
 - **Documentation & Guides:** **[Kraits Wiki](https://github.com/1picassoai/kraits/wiki)** (setup, architecture, loop-control gates, and tested results)
