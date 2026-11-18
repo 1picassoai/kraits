@@ -2,11 +2,11 @@
 
 ![A llama and a striped krait sharing sandwiches on a picnic blanket, beside a basket marked SSD and a Mac mini](docs/kraits-picnic.png)
 
-A plugin for `llama.cpp` that runs mixture-of-experts models bigger than a 16 GB Mac's GPU can hold, together with **`kraits-adaptor`** — a zero-dependency Rust AST indexer, KV-prefix lock proxy, and loop-guarded coding-agent harness.
+A plugin for `llama.cpp` that runs mixture-of-experts models bigger than a 16 GB Mac's GPU can hold, together with **`kraits-adaptor`** — a zero-dependency AST indexer, KV-prefix lock proxy, and loop-guarded coding-agent harness.
 
 ## Kraits Repo Adaptor (`v0.6.28` — `kraits-adaptor/`)
 
-Pure Rust (zero external crate dependencies) harness that sits in front of `llama-server` (`llama.cpp`, `--jinja`) to stop coding-agent loops on real repositories:
+Zero-dependency local harness that sits in front of `llama-server` (`llama.cpp`, `--jinja`) to stop coding-agent loops on real repositories:
 
 - **Build & Run:** See [`kraits-adaptor/README.md`](kraits-adaptor/README.md) (`cargo test --release`, `cargo build --release`, `kraits-adaptor serve --repo <dir> --listen 127.0.0.1:8100 --upstream http://127.0.0.1:8099`).
 - **Loop & Hallucination Gates:** AST symbol slicing (`ast_symbol`), KV-prefix lock (`cache_n = 988` on Turn 1), pre-tool path/symbol/command validation, `64`-token no-tool stream cutoff, cached repeat replies, auto-`pytest` verification after 2 edits, and summary quality gates.

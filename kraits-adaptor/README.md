@@ -1,6 +1,6 @@
 # Kraits Repo Adaptor (`kraits-adaptor`)
 
-Zero-dependency Rust AST indexer, KV-prefix lock proxy, loop-guarded coding-agent loop, and minimalist web UI (`/`).
+Zero-dependency AST indexer, KV-prefix lock proxy, loop-guarded coding-agent loop, and minimalist web UI (`/`).
 
 ## Build & Test
 
