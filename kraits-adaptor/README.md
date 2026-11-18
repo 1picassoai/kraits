@@ -12,7 +12,7 @@ cargo test --release
 cargo build --release
 ```
 
-The compiled binary is written to `target/release/kraits-adaptor` (`target\release\kraits-adaptor.exe` on Windows).
+The compiled binary is written to `target/release/kraits-adaptor`.
 
 ## Quick Start (`serve`)
 
