@@ -1,6 +1,6 @@
 [package]
 name = "kraits-adaptor"
-version = "0.6.28"
+version = "0.6.29"
 edition = "2021"
 license = "Apache-2.0"
 description = "Kraits Repo Adaptor: AST code-tree indexer, incremental repo learner, and KV-preserving OpenAI adaptor."

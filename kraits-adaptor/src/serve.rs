@@ -1,6 +1,6 @@
 //! OpenAI-compatible HTTP/SSE proxy that adapts Kraits (`:8099`) to a local repo.
 
-use crate::agent::{git_diff_repo, handle_demo_action, spawn_agent_task, TaskMap};
+use crate::agent::{conversational_system_prompt, git_diff_repo, handle_demo_action, spawn_agent_task, TaskMap};
 use crate::ast::fnv1a;
 use crate::json::Json;
 use crate::repo::{canonical_repo_path, repo_display_name, repo_fingerprint, RepoStore};
@@ -15,10 +15,40 @@ pub struct ServerState {
     pub repo_root: PathBuf,
     pub store: Mutex<RepoStore>,
     pub upstream_host_port: String,
+    pub upstream_n_ctx: usize,
     pub requests_served: Mutex<u64>,
     /// Frozen Turn-1 repo context per conversation prefix hash so KV cache stays 100% invariant across turns.
     pub session_prefixes: Mutex<HashMap<u64, String>>,
     pub tasks: TaskMap,
+}
+
+fn fetch_upstream_n_ctx(upstream_hp: &str) -> usize {
+    let fallback = 10_240usize;
+    let Ok(mut stream) = TcpStream::connect(upstream_hp) else {
+        return fallback;
+    };
+    let _ = stream.set_read_timeout(Some(Duration::from_secs(3)));
+    let _ = stream.set_write_timeout(Some(Duration::from_secs(3)));
+    let req = format!(
+        "GET /props HTTP/1.1\r\nHost: {}\r\nConnection: close\r\n\r\n",
+        upstream_hp
+    );
+    if stream.write_all(req.as_bytes()).is_err() || stream.flush().is_err() {
+        return fallback;
+    }
+    let mut raw = String::new();
+    if stream.read_to_string(&mut raw).is_err() {
+        return fallback;
+    }
+    let body = raw.split_once("\r\n\r\n").map(|(_, b)| b).unwrap_or(&raw);
+    let Ok(v) = Json::parse(body.trim()) else {
+        return fallback;
+    };
+    v.get("default_generation_settings")
+        .and_then(|d| d.get("n_ctx"))
+        .and_then(|n| n.as_i64())
+        .map(|n| (n as usize).clamp(2048, 131_072))
+        .unwrap_or(fallback)
 }
 
 fn parse_upstream(url: &str) -> String {
@@ -36,10 +66,12 @@ pub fn run_server(repo_root: PathBuf, listen: &str, upstream_url: &str) -> Resul
     let ast_count = store.files.len();
     let lesson_count = store.lessons.len();
     let upstream_hp = parse_upstream(upstream_url);
+    let upstream_n_ctx = fetch_upstream_n_ctx(&upstream_hp);
     let state = Arc::new(ServerState {
         repo_root,
         store: Mutex::new(store),
         upstream_host_port: upstream_hp.clone(),
+        upstream_n_ctx,
         requests_served: Mutex::new(0),
         session_prefixes: Mutex::new(HashMap::new()),
         tasks: Mutex::new(HashMap::new()),
@@ -52,12 +84,13 @@ pub fn run_server(repo_root: PathBuf, listen: &str, upstream_url: &str) -> Resul
         &repo_fingerprint(&state.repo_root)[..8]
     );
     println!(
-        "[kraits-adaptor] listening on http://{} -> upstream http://{} (repo files={}, learned_lessons={})",
-        listen, upstream_hp, ast_count, lesson_count
+        "[kraits-adaptor] listening on http://{} -> upstream http://{} (ctx={}, repo files={}, learned_lessons={})",
+        listen, upstream_hp, upstream_n_ctx, ast_count, lesson_count
     );
 
     for stream in listener.incoming() {
         let Ok(client) = stream else { continue };
+        let _ = client.set_nodelay(true);
         let st = Arc::clone(&state);
         std::thread::spawn(move || {
             let _ = handle_client(client, st);
@@ -118,6 +151,7 @@ fn write_response(client: &mut TcpStream, status: &str, content_type: &str, body
     let _ = client.write_all(hdr.as_bytes());
     let _ = client.write_all(body.as_bytes());
     let _ = client.flush();
+    let _ = client.shutdown(std::net::Shutdown::Write);
 }
 
 fn write_json_response(client: &mut TcpStream, status: &str, body: &str) {
@@ -296,6 +330,7 @@ fn handle_client(mut client: TcpStream, state: Arc<ServerState>) -> Result<(), S
         let resp = Json::obj(vec![
             ("kraits_adaptor", Json::Bool(true)),
             ("version", Json::Str(env!("CARGO_PKG_VERSION").into())),
+            ("upstream_n_ctx", Json::Num(state.upstream_n_ctx as f64)),
             ("repo_locked", Json::Bool(true)),
             ("repo_name", Json::Str(repo_display_name(&state.repo_root))),
             ("repo_fingerprint", Json::Str(repo_fingerprint(&state.repo_root))),
@@ -395,13 +430,18 @@ fn handle_client(mut client: TcpStream, state: Arc<ServerState>) -> Result<(), S
                         }
                     }
                 } else if !has_system {
-                    let chat_sys = format!(
-                        "You are Kraits, a fast coding assistant bound exclusively to the `{}` repository. Always state cleanly that you are Kraits bound to `{}` when greeting the user, and offer to inspect, edit, or test files in `{}`.",
-                        repo_name, repo_name, repo_name
-                    );
+                    let chat_sys = conversational_system_prompt(&repo_name);
                     if let Some(arr) = payload.as_obj_mut().and_then(|o| o.get_mut("messages")).and_then(|m| m.as_arr_mut()) {
                         arr.insert(0, Json::obj(vec![("role", Json::Str("system".into())), ("content", Json::Str(chat_sys))]));
                     }
+                }
+            }
+            if let Some(obj) = payload.as_obj_mut() {
+                if !obj.contains_key("reasoning_budget") {
+                    obj.insert("reasoning_budget".into(), Json::Num(0.0));
+                }
+                if !obj.contains_key("chat_template_kwargs") {
+                    obj.insert("chat_template_kwargs".into(), Json::obj(vec![("enable_thinking".into(), Json::Bool(false))]));
                 }
             }
             body = payload.encode().into_bytes();

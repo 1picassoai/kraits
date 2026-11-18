@@ -551,6 +551,9 @@ impl RepoStore {
         if !terms.is_empty() && terms.iter().all(|t| GREETINGS.contains(&t.as_str())) {
             return false;
         }
+        if is_meta_capability_question(&ql, &terms) {
+            return false;
+        }
         const CODE_WORDS: &[&str] = &[
             "fix", "bug", "test", "tests", "pytest", "cargo", "build", "edit", "patch",
             "implement", "add", "create", "write", "refactor", "debug", "error", "fail",
@@ -1121,4 +1124,42 @@ mod tests {
 
         let _ = fs::remove_dir_all(&tmp);
     }
+
+    #[test]
+    fn meta_capability_questions_skip_repo_context() {
+        let tmp = std::env::temp_dir().join(format!("kraits_meta_q_{}", now_secs()));
+        let _ = fs::remove_dir_all(&tmp);
+        fs::create_dir_all(tmp.join("src/flask")).unwrap();
+        fs::write(tmp.join("src/flask/helpers.py"), "def get_debug_flag():\n    return False\n").unwrap();
+        let store = RepoStore::open(&tmp);
+        assert!(!store.needs_repo_context("Can you work on any project or just flask?"));
+        assert!(!store.needs_repo_context("Are you tied to this repo only?"));
+        assert!(!store.needs_repo_context("What can you do?"));
+        assert!(store.needs_repo_context("Fix get_debug_flag in src/flask/helpers.py"));
+        assert!(store.needs_repo_context("Explain helpers.py"));
+        let _ = fs::remove_dir_all(&tmp);
+    }
+}
+
+fn is_meta_capability_question(ql: &str, terms: &[String]) -> bool {
+    const ACTION_WORDS: &[&str] = &[
+        "fix", "bug", "test", "tests", "pytest", "cargo", "build", "edit", "patch",
+        "implement", "add", "create", "write", "refactor", "debug", "error", "fail",
+        "failing", "traceback", "inspect", "explain", "diff", "verify", "run",
+    ];
+    if terms.iter().any(|t| ACTION_WORDS.contains(&t.as_str())) {
+        return false;
+    }
+    const META_PHRASES: &[&str] = &[
+        "any project", "any repo", "any codebase", "other project", "other repo",
+        "different project", "different repo", "who are you", "what are you",
+        "what can you do", "what do you do", "how do you work", "work on any",
+    ];
+    if META_PHRASES.iter().any(|p| ql.contains(p)) {
+        return true;
+    }
+    const SCOPE_WORDS: &[&str] = &["just", "only", "tied", "bound", "locked", "limited"];
+    const TARGET_WORDS: &[&str] = &["work", "support", "project", "projects", "repo", "repos", "code", "codebase"];
+    terms.iter().any(|t| SCOPE_WORDS.contains(&t.as_str()))
+        && terms.iter().any(|t| TARGET_WORDS.contains(&t.as_str()))
 }

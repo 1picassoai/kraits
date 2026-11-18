@@ -2,46 +2,33 @@
 
 ![A llama and a striped krait sharing sandwiches on a picnic blanket, beside a basket marked SSD and a Mac mini](docs/kraits-picnic.png)
 
-A plugin for `llama.cpp` that runs mixture-of-experts models bigger than a 16 GB Mac's GPU can hold, together with **`kraits-adaptor`** — a zero-dependency AST indexer, KV-prefix lock proxy, and loop-guarded coding-agent harness.
+A drop-in plugin for `llama.cpp` that runs large mixture-of-experts models (such as **`Qwen3.8-Flash-Next-IQ4_XS`**, `91 GiB` across 3 shards) completely offline on a **base `16 GB` Apple Silicon Mac** at **`16K` context (`-c 16384`)**, together with **`kraits-adaptor`** — a zero-dependency AST indexer, KV-prefix lock proxy, and loop-guarded coding-agent harness & web UI.
 
-## How It Works
+## Quick Start (macOS arm64 — Recommended Release Bundle)
 
-```mermaid
-flowchart TD
-    S1["1. You send a bug-fix request to kraits-adaptor (Kraits UI or /v1/chat/completions)"]
-    S2["2. kraits-adaptor reads your repo's real files and functions"]
-    S3["3. It asks llama-server (your local LLM) for a fix and blocks loops or fake paths"]
-    S4["4. It applies the edit and runs pytest on your repo"]
-    S5["5. You get a verified git diff and passing test summary"]
-
-    S1 --> S2 --> S3 --> S4 --> S5
-    S4 -. "If tests fail, retry safely" .-> S3
-```
-
-## How to Get Started
-
-- **Documentation & Guides:** **[Kraits Wiki](https://github.com/1picassoai/kraits/wiki)** (setup, architecture, loop-control gates, and tested results)
-- **Adaptor CLI & Endpoints:** [`kraits-adaptor/README.md`](kraits-adaptor/README.md) (`cargo test --release`, `cargo build --release`, `serve` flags, and `/kraits/*` API)
-- **Latest Release:** **[Kraits v0.6.28 — Repo Adaptor](https://github.com/1picassoai/kraits/releases/tag/v0.6.28)** (signed tag `v0.6.28` — build on Mac with `cargo build --release`)
-- **macOS `llama.cpp` Plugin (`bin/`):** See [`BUILD.md`](BUILD.md) (previous macOS release tarball: [v0.6.17](https://github.com/1picassoai/kraits/releases/tag/v0.6.17))
-
-### Quick Start (`kraits-adaptor`)
-
-1. Start `llama-server --jinja` on `http://127.0.0.1:8099`.
-2. Build and launch `kraits-adaptor` against your local Git repository, then open `http://127.0.0.1:8100`:
+Download **`kraits-v0.6.29-macos-arm64.tar.gz`** from [Releases (`v0.6.29`)](https://github.com/1picassoai/kraits/releases/tag/v0.6.29) (includes `llama-server b11936`, patched `libggml-metal`, `libggml-kraits.dylib`, `libkraits.dylib`, `kraits-server.sh`, and `kraits-adaptor`):
 
 ```sh
-cd kraits-adaptor
-cargo build --release
-./target/release/kraits-adaptor serve --repo /path/to/your/repo --listen 127.0.0.1:8100 --upstream http://127.0.0.1:8099
+tar -xzf kraits-v0.6.29-macos-arm64.tar.gz
+cd kraits-v0.6.29-macos-arm64
+
+# 1. Start llama-server with Kraits (16K context, port 8099)
+./kraits-server.sh /path/to/Qwen3.8-Flash-Next-IQ4_XS-00001-of-00003.gguf 8099 16384
+
+# 2. Point kraits-adaptor at any local Git repository (Web UI at http://127.0.0.1:8100)
+./kraits-adaptor serve --repo /path/to/your/repo --listen 127.0.0.1:8100 --upstream http://127.0.0.1:8099
 ```
 
-## Verified Benchmark (`v0.6.28`, `pallets/flask`)
+Or build `kraits-adaptor` from source (`cargo test --release && cargo build --release` inside [`kraits-adaptor/`](kraits-adaptor/README.md)).
 
-Tested with `llama-server --jinja` and `Qwen3.8-Flash-Next-IQ4_XS` on a 16 GB Mac (`-c 10240`, `16.5–17.7 tok/s`, 83 indexed Python files):
+## Measured Performance (`16 GB` Apple M4, `-c 16384`, `Qwen3.8-Flash-Next-IQ4_XS`)
 
-- **Planted single-function Python bugs:** **`4/4`** green on signed `v0.6.28` (**`73–189 s`**, `4–9` turns, KV prefix `cache_n = 988`); **`23/26`** across `v0.6.21–v0.6.28`.
-- **Known limits:** Multi-file features and real open GitHub issues (`#6123`) remain **`0/7`** at this model size and 10K context.
+- **Bare decode:** up to **`18.0 tok/s`** (`17.94–18.24 tok/s` across 256-token runs)
+- **Inside multi-turn coding loops (`kraits-adaptor`):** **`15.6–17.9 tok/s`** (`13–14 tok/s` after `12K` prompt depth)
+- **Prompt prefill:** **`30 tok/s`** on short first cold prompts (`1.6K`), scaling to **`48–67 tok/s`** (`6–12K`)
+- **Memory & cache (`vm.swapusage`):** **`7.20 GB`** wired bank (`56–57` slots/layer out of `512` experts), keeping macOS swap around **`230–370 MB`**
+- **Quality:** Runs full 4-bit (`IQ4_XS`) weights (`8/8` Rust benchmark; `4/4` planted Flask unit-test fixes on Windows, `2/4` on clean Mac build; accurate at `6K` pasted-code Q&A, recall degrades past `12K`).
+- **Adaptor documentation:** [`kraits-adaptor/README.md`](kraits-adaptor/README.md) · [`BUILD.md`](BUILD.md) · [Kraits Wiki](https://github.com/1picassoai/kraits/wiki)
 
 ## Credits
 

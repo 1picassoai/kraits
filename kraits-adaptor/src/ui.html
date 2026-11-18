@@ -31,9 +31,14 @@
       background: var(--surface); border-bottom: 1px solid var(--border); flex-shrink: 0;
     }
     .brand { display: flex; align-items: center; gap: 9px; font-weight: 700; font-size: 15px; }
+    .brand-sub { font-size: 12px; font-weight: 500; color: var(--muted); }
+    .ctx-pill {
+      font-family: var(--mono); font-size: 11.5px; font-weight: 600; padding: 3px 9px; border-radius: 999px;
+      background: rgba(56,189,248,.12); color: #7dd3fc; border: 1px solid rgba(56,189,248,.28);
+    }
     .repo-pill {
-      font-family: var(--mono); font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 999px;
-      background: rgba(34,197,94,.14); color: #86efac; border: 1px solid rgba(34,197,94,.32);
+      font-family: var(--mono); font-size: 11.5px; font-weight: 600; padding: 3px 10px; border-radius: 999px;
+      background: var(--card); color: #cbd5e1; border: 1px solid var(--border);
     }
     .top-actions { display: flex; align-items: center; gap: 8px; }
     .speed-pill {
@@ -93,12 +98,27 @@
       display: flex; align-items: center; justify-content: space-between; gap: 10px;
       font-size: 12.5px; color: var(--muted);
     }
-    .status-main { display: flex; align-items: center; gap: 8px; }
+    .status-main { display: flex; align-items: center; gap: 8px; font-weight: 500; color: #cbd5e1; }
+    .spinner {
+      width: 11px; height: 11px; border-radius: 50%;
+      border: 2px solid rgba(56,189,248,.25); border-top-color: var(--blue);
+      animation: spin .8s linear infinite; flex-shrink: 0;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
     .status-pill { font-family: var(--mono); font-size: 11.5px; color: #7dd3fc; }
+    .live-steps {
+      margin-top: 8px; display: flex; flex-direction: column; gap: 4px;
+      padding: 7px 10px; border-radius: 8px; background: #0d121c; border: 1px solid var(--border);
+    }
+    .live-step {
+      display: flex; align-items: baseline; justify-content: space-between; gap: 10px;
+      font-family: var(--mono); font-size: 11.5px; color: #cbd5e1;
+    }
+    .live-step-meta { color: var(--muted); font-size: 11px; flex-shrink: 0; }
     .live-note {
-      margin-top: 8px; font-family: var(--mono); font-size: 11.5px; color: var(--muted);
+      margin-top: 8px; font-family: var(--mono); font-size: 11.5px; color: #94a3b8;
       background: #090c12; border: 1px solid var(--border); border-radius: 8px;
-      padding: 7px 10px; white-space: pre-wrap; word-break: break-word; max-height: 90px; overflow: auto;
+      padding: 7px 10px; white-space: pre-wrap; word-break: break-word; max-height: 96px; overflow: auto;
     }
 
     /* ANSWER PROSE & MARKDOWN */
@@ -159,7 +179,8 @@
     .composer:focus-within { border-color: var(--blue); }
     textarea {
       flex: 1; background: transparent; border: none; outline: none; color: var(--text);
-      font-family: inherit; font-size: 14.5px; resize: none; min-height: 24px; max-height: 140px; line-height: 1.4;
+      font-family: inherit; font-size: 14.5px; resize: none; min-height: 24px; max-height: 160px;
+      line-height: 1.45; overflow-y: auto; padding: 0;
     }
     button.send {
       background: #0284c7; color: #fff; border: none; border-radius: 9px;
@@ -173,20 +194,22 @@
     <header class="topbar">
       <div class="brand">
         <span>Kraits</span>
-        <span class="repo-pill" id="repo-badge">pallets/flask</span>
+        <span class="brand-sub">Local Coding Agent · Any Repo</span>
       </div>
       <div class="top-actions">
+        <span class="ctx-pill" id="ctx-pill">16K ctx</span>
+        <span class="repo-pill" id="repo-badge">workspace: —</span>
         <div class="speed-pill">
           <span id="live-dot" class="dot"></span>
           <span id="top-tps">— t/s</span>
         </div>
-        <button class="btn" onclick="toggleDrawer()">Repo ▾</button>
+        <button class="btn" onclick="toggleDrawer()">Workspace ▾</button>
       </div>
     </header>
 
     <section class="drawer" id="repo-drawer">
       <div class="drawer-inner">
-        <div class="drawer-meta" id="drawer-meta">Loading repo metadata...</div>
+        <div class="drawer-meta" id="drawer-meta">Loading workspace metadata...</div>
         <div class="drawer-btns">
           <button class="btn" onclick="runPytestCheck()">Run Pytest</button>
           <button class="btn" onclick="resetRepo()">Reset Clean</button>
@@ -200,12 +223,12 @@
     <main class="messages" id="messages">
       <div class="msg bot">
         <div class="bubble">
-          <div class="welcome-title">Ask anything or describe a bug in <span id="welcome-repo">pallets/flask</span></div>
-          <div class="welcome-sub" id="welcome-meta">Indexing AST &amp; learned repo memory...</div>
+          <div class="welcome-title">Local AI Coding Agent for Any Repository</div>
+          <div class="welcome-sub">Attach any codebase with <code>--repo &lt;path&gt;</code>. Active workspace: <strong id="welcome-repo">...</strong> · <span id="welcome-meta">Indexing files &amp; memory...</span></div>
           <div class="chips">
             <button class="chip" onclick="quickAsk('Hello')">Hello</button>
-            <button class="chip" onclick="quickAsk('Explain how stream_with_context works in src/flask/helpers.py.')">Explain stream_with_context</button>
-            <button class="chip" onclick="usePreset('feat1')">Add Flask.route_summary()</button>
+            <button class="chip" onclick="quickAsk('Summarize how configuration and environment flags are handled in this repository.')">Inspect repo config &amp; env flags</button>
+            <button class="chip" onclick="usePreset('feat1')">Implement a new helper method</button>
           </div>
         </div>
       </div>
@@ -213,7 +236,7 @@
 
     <footer class="composer-wrap">
       <div class="composer">
-        <textarea id="chat-input" rows="1" placeholder="Message Kraits..." onkeydown="if(event.key==='Enter' && !event.shiftKey){event.preventDefault();sendChat();}"></textarea>
+        <textarea id="chat-input" rows="1" placeholder="Ask a question or describe a coding issue in the active workspace..." oninput="autoResizeInput(this)" onkeydown="if(event.key==='Enter' && !event.shiftKey){event.preventDefault();sendChat();}"></textarea>
         <button class="send" id="send-btn" onclick="sendChat()">Send</button>
       </div>
     </footer>
@@ -263,9 +286,17 @@
       return html.replace(/\x00BLOCK(\d+)\x00/g, (_, i) => blocks[Number(i)]);
     }
 
+    function autoResizeInput(el) {
+      if (!el) return;
+      el.style.height = 'auto';
+      el.style.height = Math.min(el.scrollHeight, 160) + 'px';
+    }
+
     function quickAsk(txt) {
       pendingDemoAction = null;
-      document.getElementById('chat-input').value = txt;
+      const el = document.getElementById('chat-input');
+      el.value = txt;
+      autoResizeInput(el);
       sendChat();
     }
 
@@ -280,8 +311,10 @@
           body: JSON.stringify({action: p.demoAction})
         });
       }
-      document.getElementById('chat-input').value = p.prompt;
-      document.getElementById('chat-input').focus();
+      const el = document.getElementById('chat-input');
+      el.value = p.prompt;
+      autoResizeInput(el);
+      el.focus();
     }
 
     async function refreshRepo() {
@@ -291,11 +324,13 @@
       ]);
       const files = (rRepo.files || []).length;
       const lessons = (rMem.lessons || []).length;
-      const rName = rRepo.repo_name || 'pallets/flask';
-      document.getElementById('repo-badge').textContent = rName;
+      const rName = rRepo.repo_name || 'workspace';
+      const ctxK = Math.max(1, Math.round((rRepo.upstream_n_ctx || 16384) / 1024));
+      document.getElementById('ctx-pill').textContent = `${ctxK}K ctx`;
+      document.getElementById('repo-badge').textContent = `workspace: ${rName}`;
       document.getElementById('welcome-repo').textContent = rName;
-      document.getElementById('welcome-meta').textContent = `${files} Python files indexed · ${lessons} learned repo lessons`;
-      document.getElementById('drawer-meta').textContent = `${rName} · ${files} AST files · ${lessons} learned lessons`;
+      document.getElementById('welcome-meta').textContent = `${files} source files indexed · ${lessons} learned patterns`;
+      document.getElementById('drawer-meta').textContent = `Attached --repo: ${rName} · ${files} indexed files · ${lessons} learned patterns`;
     }
 
     async function runPytestCheck() {
@@ -345,6 +380,7 @@
       if (!prompt) return;
 
       input.value = '';
+      autoResizeInput(input);
       document.getElementById('send-btn').disabled = true;
       document.getElementById('live-dot').classList.add('live');
 
@@ -354,7 +390,8 @@
       const botId = 'bot_' + Date.now();
       msgsEl.insertAdjacentHTML('beforeend',
         `<div class="msg bot" id="${botId}"><div class="bubble">` +
-        `<div class="status-line" id="${botId}-status"><span class="status-main" id="${botId}-phase">Thinking...</span><span class="status-pill" id="${botId}-meta">—</span></div>` +
+        `<div class="status-line" id="${botId}-status"><span class="status-main" id="${botId}-phase"><span class="spinner"></span><span>Starting...</span></span><span class="status-pill" id="${botId}-meta">—</span></div>` +
+        `<div class="live-steps" id="${botId}-steps" style="display:none"></div>` +
         `<div class="live-note" id="${botId}-live" style="display:none"></div>` +
         `<div id="${botId}-body"></div>` +
         `</div></div>`
@@ -387,11 +424,23 @@
 
       const phaseEl = document.getElementById(`${botId}-phase`);
       const metaEl = document.getElementById(`${botId}-meta`);
+      const stepsEl = document.getElementById(`${botId}-steps`);
       const liveEl = document.getElementById(`${botId}-live`);
 
       if (t.status === 'running') {
-        phaseEl.textContent = friendlyPhase(t.live_phase);
+        phaseEl.innerHTML = `<span class="spinner"></span><span>${esc(friendlyPhase(t.live_phase))}</span>`;
         metaEl.textContent = `${tpsTxt} · ${wallS}s`;
+        const liveTurns = t.turns || [];
+        if (liveTurns.length > 0) {
+          stepsEl.style.display = 'flex';
+          stepsEl.innerHTML = liveTurns.flatMap(tr =>
+            (tr.tools || []).map(tl =>
+              `<div class="live-step"><span>${tl.ok ? '✓' : '✕'} <strong>${esc(tl.name)}</strong> · ${esc(tl.detail)}</span><span class="live-step-meta">${(tr.tok_per_sec || 0).toFixed(1)} t/s · ${(tr.wall_s || 0).toFixed(1)}s</span></div>`
+            )
+          ).join('');
+        } else {
+          stepsEl.style.display = 'none';
+        }
         const showPreview = (t.live_stream || '').trim();
         if (showPreview) {
           liveEl.style.display = 'block';
@@ -399,12 +448,15 @@
         } else {
           liveEl.style.display = 'none';
         }
+        const msgsEl = document.getElementById('messages');
+        msgsEl.scrollTop = msgsEl.scrollHeight;
         return;
       }
 
       clearInterval(pollTimer); pollTimer = null;
       document.getElementById('live-dot').classList.remove('live');
       document.getElementById('send-btn').disabled = false;
+      stepsEl.style.display = 'none';
       liveEl.style.display = 'none';
 
       const statusRow = document.getElementById(`${botId}-status`);

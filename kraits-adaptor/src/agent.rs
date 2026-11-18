@@ -136,8 +136,16 @@ fn run_shell_in_repo(root: &Path, cmd: &str) -> (i32, String) {
         c.args(["-NoProfile", "-Command", &win_cmd]);
         c
     } else {
+        let mut norm = cmd.trim().to_string();
+        if python_executable() == "python3" {
+            if norm == "python" {
+                norm = "python3".into();
+            } else if let Some(rest) = norm.strip_prefix("python ") {
+                norm = format!("python3 {}", rest);
+            }
+        }
         let mut c = Command::new("sh");
-        c.args(["-c", cmd]);
+        c.args(["-c", &norm]);
         c
     };
     command.current_dir(root);
@@ -187,12 +195,25 @@ fn git_diff_paths(root: &Path, files: &std::collections::BTreeSet<String>) -> St
     }
 }
 
+fn python_executable() -> &'static str {
+    static PY_BIN: std::sync::OnceLock<&'static str> = std::sync::OnceLock::new();
+    PY_BIN.get_or_init(|| {
+        if Command::new("python").arg("--version").output().is_ok() {
+            "python"
+        } else if Command::new("python3").arg("--version").output().is_ok() {
+            "python3"
+        } else {
+            "python"
+        }
+    })
+}
+
 fn check_python_syntax(root: &Path, path: &Path) -> Result<(), String> {
     if path.extension().and_then(|e| e.to_str()) != Some("py") {
         return Ok(());
     }
     let script = "import ast, sys; ast.parse(open(sys.argv[1], encoding='utf-8').read(), filename=sys.argv[1])";
-    match Command::new("python")
+    match Command::new(python_executable())
         .arg("-c")
         .arg(script)
         .arg(path)
@@ -416,6 +437,18 @@ fn deterministic_failure_summary(edited_files: &BTreeSet<String>, reason: &str) 
     }
 }
 
+fn compute_ctx_char_budget(n_ctx: usize) -> usize {
+    n_ctx.saturating_sub(2200).saturating_mul(3).max(22_000)
+}
+
+fn is_multifile_or_feature_prompt(prompt: &str) -> bool {
+    let low = prompt.to_ascii_lowercase();
+    ["route_summary", "add tests in", "regression test", "blueprint", "issue #", "multi-", "and add "]
+        .iter()
+        .any(|m| low.contains(m))
+        || (low.contains("add ") && low.contains("tests/"))
+}
+
 fn should_abort_loop_guard(
     readonly_q: bool,
     edited_empty: bool,
@@ -423,12 +456,14 @@ fn should_abort_loop_guard(
     turns_without_edit: usize,
     total_edit_attempts: usize,
     total_tool_errors: usize,
+    no_edit_cap: usize,
+    edit_cap: usize,
 ) -> Option<&'static str> {
-    if !readonly_q && edited_empty && turns_without_edit >= 5 {
-        return Some("exploration loop: 5 turns with 0 edits");
+    if !readonly_q && edited_empty && turns_without_edit >= no_edit_cap {
+        return Some("exploration loop: too many turns with 0 edits");
     }
-    if total_edit_attempts >= 4 && !verified_pass {
-        return Some("non-converging edit/verify loop (4 edits without pass)");
+    if total_edit_attempts >= edit_cap && !verified_pass {
+        return Some("non-converging edit/verify loop without pass");
     }
     if total_tool_errors >= 5 && !verified_pass {
         return Some("repeated tool failures (5 errors without pass)");
@@ -708,12 +743,13 @@ fn prevalidate_tool_call(
         "execute_command" => {
             let cmd = args.get("command").and_then(|s| s.as_str()).unwrap_or("").trim();
             let head = cmd.split_whitespace().next().unwrap_or("").to_ascii_lowercase();
-            let allowed = matches!(head.as_str(), "python" | "python.exe" | "pytest" | "git");
-            let bad_flag = cmd.contains("python - ") || cmd.contains("python.exe - ") || cmd.contains("Select_");
+            let allowed = matches!(head.as_str(), "python" | "python3" | "python.exe" | "pytest" | "git");
+            let bad_flag = cmd.contains("python - ") || cmd.contains("python3 - ") || cmd.contains("python.exe - ") || cmd.contains("Select_");
             if !allowed || bad_flag {
+                let shell_lbl = if cfg!(windows) { "Windows PowerShell" } else { "the shell" };
                 return Err((
                     format!("invalid command: {}", cmd.chars().take(60).collect::<String>()),
-                    format!("VALIDATION ERROR: Command `{}` is not allowed on Windows PowerShell. Only run `python -m pytest ...` or `git ...`; use `search_repo` to search files.", cmd),
+                    format!("VALIDATION ERROR: Command `{}` is not allowed in {}. Only run `python -m pytest ...` or `git ...`; use `search_repo` to search files.", cmd, shell_lbl),
                 ));
             }
             Ok(())
@@ -1108,7 +1144,11 @@ fn build_tools_schema() -> Json {
         ),
         tool(
             "execute_command",
-            "Execute a PowerShell verification command (such as python -m pytest ...) inside the repository.",
+            if cfg!(windows) {
+                "Execute a PowerShell verification command (such as python -m pytest ...) inside the repository."
+            } else {
+                "Execute a shell verification command (such as python -m pytest ...) inside the repository."
+            },
             vec![("command", "string")],
             vec!["command"],
         ),
@@ -1133,8 +1173,11 @@ struct StreamResult {
 }
 
 fn tool_stream_should_stop(early_stop_no_tool: bool, has_tc: bool, content: &str, chunk_toks: u64) -> bool {
-    if !early_stop_no_tool || has_tc {
+    if !early_stop_no_tool {
         return false;
+    }
+    if has_tc {
+        return chunk_toks >= 512;
     }
     if chunk_toks >= 256 {
         return true;
@@ -1316,6 +1359,8 @@ fn post_upstream_chat_streaming(
                 let preview = if let Some((_, (_, fname, fargs))) = tc_map.iter().next_back() {
                     let arg_tail: String = fargs.chars().rev().take(260).collect::<String>().chars().rev().collect();
                     format!("Calling {}({})", fname, arg_tail)
+                } else if !content.trim().is_empty() {
+                    content.chars().rev().take(260).collect::<String>().chars().rev().collect()
                 } else {
                     reasoning.chars().rev().take(260).collect::<String>().chars().rev().collect()
                 };
@@ -1411,6 +1456,16 @@ pub fn spawn_agent_task(state: Arc<ServerState>, prompt: String) -> String {
     task_id
 }
 
+/// System prompt used for conversational/non-repo chat turns across UI and proxy routes.
+pub fn conversational_system_prompt(repo_name: &str) -> String {
+    format!(
+        "You are Kraits, a local AI coding assistant that works with any repository via `--repo <path>`. \
+         The active workspace for this session is `{}`. \
+         Answer general questions directly and concisely; when asked about this codebase, offer to inspect, edit, or test files in `{}`.",
+        repo_name, repo_name
+    )
+}
+
 fn run_agent_loop(state: Arc<ServerState>, task_id: String, prompt: String) {
     let t0 = Instant::now();
     let repo_root = state.repo_root.clone();
@@ -1433,10 +1488,7 @@ fn run_agent_loop(state: Arc<ServerState>, task_id: String, prompt: String) {
                 tr.elapsed_s = t0.elapsed().as_secs_f64();
             }
         }
-        let chat_sys = format!(
-            "You are Kraits, a fast coding assistant bound exclusively to the `{}` repository. Always state cleanly that you are Kraits bound to `{}` when greeting the user, and offer to inspect, edit, or test files in `{}`.",
-            repo_name, repo_name, repo_name
-        );
+        let chat_sys = conversational_system_prompt(&repo_name);
         let payload = Json::obj(vec![
             ("model", Json::Str("Qwen3.8-Flash-Next-IQ4_XS".into())),
             ("messages", Json::Arr(vec![
@@ -1489,14 +1541,15 @@ fn run_agent_loop(state: Arc<ServerState>, task_id: String, prompt: String) {
         return;
     }
 
+    let shell_rule = if cfg!(windows) { "PowerShell syntax, no `&&`" } else { "POSIX shell syntax" };
     let sys_prompt = format!(
-        "You are Kraits, a senior systems engineer bound to `{}` (`{}`).\n\
+        "You are Kraits, a senior systems engineer. Active session workspace: `{}` (`{}`).\n\
          - Output ONLY structured JSON tool calls — NEVER output prose outside `attempt_completion` or `<invoke>` tags.\n\
          - `[Kraits Repo Adaptor]` ALREADY gives the repo AST tree, toolchain, and learned lessons.\n\
          - Use `ast_symbol(path, symbol)` or `search_repo(query)` first; use `read_file` with positive `1 <= start_line <= end_line` (max 100 lines). Never re-read overlapping line ranges.\n\
-         - Patch cleanly with `replace_in_file` (or `write_to_file` for new test/source files requested), then run `execute_command` (`python -m pytest ...`, PowerShell syntax, no `&&`).\n\
+         - Patch cleanly with `replace_in_file` (or `write_to_file` for new test/source files requested), then run `execute_command` (`python -m pytest ...`, {}).\n\
          - Call `attempt_completion` with a 1-2 sentence plain English summary as soon as `execute_command` passes (or immediately for read-only questions).",
-        repo_name, repo_display
+        repo_name, repo_display, shell_rule
     );
 
     let mut messages = vec![
@@ -1509,6 +1562,12 @@ fn run_agent_loop(state: Arc<ServerState>, task_id: String, prompt: String) {
 
     let tools_schema = build_tools_schema();
     let readonly_q = is_readonly_question(&prompt);
+    let multifile_16k = !readonly_q && state.upstream_n_ctx >= 16_384 && is_multifile_or_feature_prompt(&prompt);
+    let ctx_char_budget = compute_ctx_char_budget(state.upstream_n_ctx);
+    let read_cap_lines: usize = if state.upstream_n_ctx >= 16_384 { 140 } else { 100 };
+    let read_cap_chars: usize = if state.upstream_n_ctx >= 16_384 { 5600 } else { 4000 };
+    let no_edit_cap: usize = if multifile_16k { 6 } else { 5 };
+    let edit_cap: usize = if multifile_16k { 6 } else { 4 };
     let mut verified_pass = false;
     let mut applied_patches: Vec<String> = Vec::new();
     let mut edited_files: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
@@ -1530,8 +1589,8 @@ fn run_agent_loop(state: Arc<ServerState>, task_id: String, prompt: String) {
     let mut abort_err: Option<String> = None;
     let mut last_prose = String::new();
     let mut valid_turns_used: usize = 0;
-    let max_turns = 9usize;
-    let max_total_iters = 14usize;
+    let max_turns = if multifile_16k { 12usize } else { 9usize };
+    let max_total_iters = if multifile_16k { 17usize } else { 14usize };
 
     for total_iter in 1..=max_total_iters {
         if valid_turns_used >= max_turns {
@@ -1540,7 +1599,7 @@ fn run_agent_loop(state: Arc<ServerState>, task_id: String, prompt: String) {
         let turn = valid_turns_used + 1;
         let _ = total_iter;
         let turn_t0 = Instant::now();
-        compact_messages_for_ctx(&mut messages, 27_500);
+        compact_messages_for_ctx(&mut messages, ctx_char_budget);
         {
             let mut map = state.tasks.lock().unwrap();
             let Some(tr) = map.get_mut(&task_id) else { return };
@@ -1926,21 +1985,21 @@ fn run_agent_loop(state: Arc<ServerState>, task_id: String, prompt: String) {
                                     (format!("{} (L{}-L{})", rel, s_raw, e_raw), format!("ERROR: invalid range start_line={} > end_line={} (file {} has {} lines).", s_raw, e_raw, rel, lines.len()))
                                 } else {
                                     let s_line = s_raw as usize;
-                                    let req_end = e_opt.map(|n| n as usize).unwrap_or(s_line + 99);
-                                    let e_line = req_end.min(s_line + 99).min(lines.len());
+                                    let req_end = e_opt.map(|n| n as usize).unwrap_or(s_line + read_cap_lines - 1);
+                                    let e_line = req_end.min(s_line + read_cap_lines - 1).min(lines.len());
                                     let mut out = String::new();
                                     let mut actual_end = s_line;
                                     for idx in (s_line - 1)..e_line {
                                         let ln = format!("{}: {}\n", idx + 1, lines[idx]);
-                                        if out.len() + ln.len() > 4000 {
-                                            out.push_str(&format!("... (capped at 4000 chars around line {} of {}; pass start_line={} to continue)", idx + 1, lines.len(), idx + 1));
+                                        if out.len() + ln.len() > read_cap_chars {
+                                            out.push_str(&format!("... (capped at {} chars around line {} of {}; pass start_line={} to continue)", read_cap_chars, idx + 1, lines.len(), idx + 1));
                                             break;
                                         }
                                         out.push_str(&ln);
                                         actual_end = idx + 1;
                                     }
                                     if e_line < req_end.min(lines.len()) && !out.contains("capped at") {
-                                        out.push_str(&format!("... (capped at 100 lines of {}; pass start_line={} or use ast_symbol/search_repo)", lines.len(), e_line + 1));
+                                        out.push_str(&format!("... (capped at {} lines of {}; pass start_line={} or use ast_symbol/search_repo)", read_cap_lines, lines.len(), e_line + 1));
                                     }
                                     seen_reads.insert(cache_key.clone());
                                     seen_reads.insert(format!("read:{}:{}:{}", rel, s_line, actual_end));
@@ -2088,8 +2147,15 @@ fn run_agent_loop(state: Arc<ServerState>, task_id: String, prompt: String) {
                         consec_cmd_fails += 1;
                         (format!("`{}` -> invalid python flag", cmd), "ERROR: Invalid command (`python -` launches interactive stdin). Run `python -m pytest ...` without stray `-`.".into())
                     } else {
-                        consec_edits_by_file.clear();
-                        if cmd.to_ascii_lowercase().contains("pytest") {
+                        let low_cmd = cmd.to_ascii_lowercase();
+                        let is_verify_cmd = low_cmd.contains("pytest")
+                            || low_cmd.contains("cargo test")
+                            || low_cmd.contains("unittest")
+                            || low_cmd.contains("npm test");
+                        if is_verify_cmd {
+                            consec_edits_by_file.clear();
+                        }
+                        if low_cmd.contains("pytest") {
                             last_test_cmd = cmd.to_string();
                         }
                         let (passed, detail, mut out, pass_sum) = {
@@ -2308,6 +2374,8 @@ fn run_agent_loop(state: Arc<ServerState>, task_id: String, prompt: String) {
                 turns_without_edit,
                 total_edit_attempts,
                 total_tool_errors,
+                no_edit_cap,
+                edit_cap,
             ) {
                 abort_err = Some(deterministic_failure_summary(&edited_files, reason));
             } else if !readonly_q && edited_files.is_empty() && turns_without_edit == 3 {
@@ -2477,6 +2545,7 @@ mod tests {
         assert!(!tool_stream_should_stop(true, false, "{\"path\": \"src/flask/helpers.py\"}", 64));
         assert!(tool_stream_should_stop(true, false, "{\"noisy\": true, ...}", 256));
         assert!(!tool_stream_should_stop(true, true, "anything", 256));
+        assert!(tool_stream_should_stop(true, true, "runaway open tool call", 512));
         assert!(!tool_stream_should_stop(false, false, "long read-only prose answer", 256));
     }
 
@@ -2563,11 +2632,20 @@ mod tests {
 
     #[test]
     fn loop_guard_aborts_exploration_and_oscillation_loops() {
-        assert_eq!(should_abort_loop_guard(false, true, false, 4, 0, 0), None);
-        assert!(should_abort_loop_guard(false, true, false, 5, 0, 0).is_some());
-        assert_eq!(should_abort_loop_guard(true, true, false, 6, 0, 0), None);
-        assert!(should_abort_loop_guard(false, false, false, 0, 4, 0).is_some());
-        assert_eq!(should_abort_loop_guard(false, false, true, 0, 4, 5), None);
-        assert!(should_abort_loop_guard(false, false, false, 0, 2, 5).is_some());
+        assert_eq!(should_abort_loop_guard(false, true, false, 4, 0, 0, 5, 4), None);
+        assert!(should_abort_loop_guard(false, true, false, 5, 0, 0, 5, 4).is_some());
+        assert_eq!(should_abort_loop_guard(false, true, false, 5, 0, 0, 6, 6), None);
+        assert_eq!(should_abort_loop_guard(true, true, false, 6, 0, 0, 5, 4), None);
+        assert!(should_abort_loop_guard(false, false, false, 0, 4, 0, 5, 4).is_some());
+        assert_eq!(should_abort_loop_guard(false, false, true, 0, 4, 5, 5, 4), None);
+        assert!(should_abort_loop_guard(false, false, false, 0, 2, 5, 5, 4).is_some());
+    }
+
+    #[test]
+    fn v0629_scales_ctx_budget_and_detects_multifile() {
+        assert_eq!(compute_ctx_char_budget(10_240), 24_120);
+        assert_eq!(compute_ctx_char_budget(16_384), 42_552);
+        assert!(is_multifile_or_feature_prompt("Add Flask.route_summary and add tests in tests/test_route_summary.py"));
+        assert!(!is_multifile_or_feature_prompt("Fix get_debug_flag in src/flask/helpers.py and verify with pytest"));
     }
 }
