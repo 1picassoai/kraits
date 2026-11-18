@@ -4,6 +4,13 @@
 
 A plugin for llama.cpp that runs mixture-of-experts models bigger than a 16 GB Mac's GPU can hold.
 
+## New in 0.6.28: Kraits Repo Adaptor (`kraits-adaptor/`)
+
+Zero-dependency Rust AST indexer, KV-prefix lock proxy, loop-guarded coding-agent harness, and minimalist web UI sitting in front of `llama-server` (`llama.cpp`, `--jinja`). See [`kraits-adaptor/README.md`](kraits-adaptor/README.md) for build, CLI flags, and endpoints.
+
+- **Verified (`pallets/flask`, 83 files):** **`4/4`** planted single-function Python bugs fixed & `pytest`-verified on signed `v0.6.28` (**`73–189 s`**, `4–9` turns, KV prefix `cache_n = 988`); **`23/26`** across `v0.6.21–v0.6.28` tested with `Qwen3.8-Flash-Next-IQ4_XS` on a 16 GB Mac (`16.5–17.7 tok/s`, `-c 10240`).
+- **Known limits:** Multi-file features and real open GitHub issues (`#6123`) remain **`0/7`** at this model size and 10K context.
+
 ## New in 0.6.17: Ling-3.0-flash-TS128-Q4_K_M, TypeScript edition
 
 **47/48 on six TypeScript tasks, at about 20 tokens/s on a 16 GB Mac. gpt-5-mini: 46/48.**
