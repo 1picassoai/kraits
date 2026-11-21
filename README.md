@@ -1,7 +1,5 @@
 # Kraits
 
-![A llama and a striped krait sharing sandwiches on a picnic blanket, beside a basket marked SSD and a Mac mini](docs/kraits-picnic.png)
-
 A drop-in plugin for `llama.cpp` that runs large mixture-of-experts models (such as **`Qwen3.8-Flash-Next-IQ4_XS`**, `90.97 GiB` across 3 shards) **100% offline** on a **base `16 GB` Apple Silicon Mac** at **`16K` context (`-c 16384`)**, together with **`kraits-adaptor`** — a zero-dependency AST indexer, KV-prefix lock proxy, and loop-guarded coding-agent harness & web UI.
 
 Zero cloud calls, zero telemetry — built for private and NDA client repositories.
