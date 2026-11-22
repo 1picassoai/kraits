@@ -21,11 +21,11 @@
 
 | Architecture (`general.architecture`) | Example Models | Scale | Quants | Status |
 |---|---|---|---|---|
-| `qwen4exp` | **Qwen3.8-Flash-Next** | ~80B MoE (`90.97 GiB`, native `K=10`) | `IQ4_XS`, `Q4_K_M` | **Verified on 16 GB M4** (`9–14 tok/s` lossless stop-fetch) |
+| `qwen4exp` | **Qwen3.8-Flash-Next** | ~80B MoE (`90.97 GiB`, native `K=10`) | `IQ4_XS`, `Q4_K_M` | **Verified on 16 GB M4 (`v0.7.0` DMG)** (`9.8–13.5 tok/s` lossless stop-fetch) |
+| `laguna` / `bailingmoe` | **Ling-3.0-Flash / Laguna** | `20.4 GB` TS128 – `72 GB` MoE | `Q4_K_M`, `IQ4_XS` | **Verified on 16 GB M4 (`0.6.17`)** (`19.6–20.7 tok/s` on TS128) |
+| `gemma4` | **Gemma 4 / Gemma QAT** | Frontier MoE / QAT | `QAT`, `IQ4_XS`, `Q4_K_M`, `Q8_0` | **Verified on 16 GB M4** (prior engine pass) |
 | `qwen3moe` / `qwen3next` | **Qwen3-MoE / Qwen3-Next** | 80B–235B MoE | `IQ4_XS`, `Q4_K_M`, `Q3_K_M` | **Engine Built-In** |
 | `gpt-oss` | **GPT-OSS MoE** | 120B MoE | `MXFP4`, `Q4_K_M`, `IQ4_XS` | **Engine Built-In** |
-| `gemma4` | **Gemma 4** | Large MoE / dense | `IQ4_XS`, `Q4_K_M`, `Q8_0` | **Engine Built-In** |
-| `laguna` / `bailingmoe` | **Ling-3.0-Flash / Laguna** | 100B+ MoE | `Q4_K_M`, `IQ4_XS` | **Engine Built-In** |
 | `glm4moe` | **GLM-4.5 / GLM-4.5-Air** | 106B+ MoE | `IQ4_XS`, `Q4_K_M` | **Engine Built-In** |
 | Other (`llama`, `mistral`, etc.) | Standard GGUFs | User choice | Any `llama.cpp` GGUF | **Standard `llama.cpp` Fallback** |
 
