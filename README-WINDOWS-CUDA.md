@@ -26,10 +26,12 @@
 
 Model: `gemma-4-26B-A4B-it-qat-UD-Q4_K_XL.gguf` (`13.26 GiB` / `14.25 GB` on `8187 MiB` VRAM, `-ngl 99 -ot exps.weight=CPU -fa 1`)
 
-| Engine | Prompt (`pp512`) | Decode (`tg128`) | Live Server | Lossless |
-|---|---:|---:|---:|:---:|
-| Stock `llama.cpp` (`-ot exps.weight=CPU`) | `178–289 tok/s` | `26.2–26.4 tok/s` | — | Yes |
-| **Kraits-CUDA `v0.1`** | **`400–538 tok/s` (`1.8–2.6×`)** | **`30.2–30.5 tok/s`** | **`31–33 tok/s`** | **Yes** |
+| Metric | Kraits-CUDA `v0.1` Measured |
+|---|---:|
+| Prompt Eval (`pp512`) | **`400–538 tok/s`** |
+| Generation (`tg128`, default `1050 MB` reserve) | **`30.2–30.5 tok/s`** |
+| Live Server Decode (short context) | **`31–33 tok/s`** |
+| Precision / Quality | **100% Lossless** (exact weights, exact router picks) |
 
 - Server startup: **`~10s`**
 - Stability: **`0` OOMs across `13` launches** with automatic graceful VRAM bank shrink fallback.

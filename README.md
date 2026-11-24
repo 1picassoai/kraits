@@ -10,7 +10,7 @@
 
 | Platform | Hardware | Verified Headline | Direct Download | Full Guide |
 |---|---|---|---|---|
-| **Windows (NVIDIA CUDA)** | **8 GB+ VRAM** (RTX 20 / 30 / 40 / 50, zero CUDA Toolkit install) | **Gemma 4 26B (`14.25 GB`)** on `8 GB` RTX 4070: **`400–538 tok/s`** prompt (`1.8–2.6×` stock), **`30–33 tok/s`** decode, 100% lossless | [**`kraits-cuda-v0.1-win64.zip`**](https://github.com/1picassoai/kraits/releases/download/cuda-v0.1/kraits-cuda-v0.1-win64.zip) (`600.53 MB`) | [**Open Windows CUDA Guide ->**](./README-WINDOWS-CUDA.md) |
+| **Windows (NVIDIA CUDA)** | **8 GB+ VRAM** (RTX 20 / 30 / 40 / 50, zero CUDA Toolkit install) | **Gemma 4 26B (`14.25 GB`)** on `8 GB` RTX 4070: **`400–538 tok/s`** prompt, **`30–33 tok/s`** decode, 100% lossless | [**`kraits-cuda-v0.1-win64.zip`**](https://github.com/1picassoai/kraits/releases/download/cuda-v0.1/kraits-cuda-v0.1-win64.zip) (`600.53 MB`) | [**Open Windows CUDA Guide ->**](./README-WINDOWS-CUDA.md) |
 | **macOS (Apple Silicon)** | **16 GB+ Unified Memory** (M1–M4, macOS 14+) | **Qwen3.8-Flash-Next 80B (`90.97 GiB`)** on `16 GB` M4: **`11–15.4 tok/s`** clean code, `418 MB` swap | [**`Kraits-v0.7.1-macos-arm64.dmg`**](https://github.com/1picassoai/kraits/releases/download/v0.7.1/Kraits-v0.7.1-macos-arm64.dmg) (`16 MB`) | [**Open macOS Guide ->**](./README-MACOS.md) |
 
 ---
