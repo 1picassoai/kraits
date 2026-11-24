@@ -36,6 +36,29 @@ Model: `gemma-4-26B-A4B-it-qat-UD-Q4_K_XL.gguf` (`13.26 GiB` / `14.25 GB` on `81
 
 ---
 
+## VS Code Coding Agent Setup (`Cline` / `Roo Code` / `Continue`) & `32K` Context
+
+Kraits-CUDA exposes a standard OpenAI-compatible API with **verified native tool-calling** (`read_file`, structured `tool_calls` JSON) — zero API cost, 100% offline.
+
+1. Start Kraits-CUDA (default `16K` context, or `-Ctx 32768` for `32K`):
+   ```powershell
+   .\start-kraits.ps1 -Model "C:\path\to\gemma-4-26B-A4B-it-qat-UD-Q4_K_XL.gguf" -Ctx 32768
+   ```
+2. In **Cline**, **Roo Code**, or **Continue** (OpenAI Compatible provider):
+   - **Base URL:** `http://127.0.0.1:8099/v1`
+   - **API Key:** `kraits` (any non-empty string)
+   - **Model ID:** `gemma4-26b`
+
+### Verified Multi-Turn `32K` Context & Tool-Calling (`8 GB` RTX 4070 Laptop, `32 GB` RAM)
+
+- **OpenAI Tool-Calling:** **PASS** (`read_file` structured `tool_calls` JSON, `finish=tool_calls`, `21.4–21.8 tok/s`).
+- **4-Turn Codebase Fill (`2,977 -> 12,375 -> 24,709 -> 29,801` tokens):** **`4/4 PASS`** needle recall of Turn 1 across `29.8K` tokens, flat **`6,877 / 8,188 MiB`** VRAM (`0` OOM):
+  - Prompt eval at long context: **`332–449 tok/s`**
+  - Decode at long context (`3K–30K` tokens): **`14–19 tok/s`** *(vs `30–33 tok/s` on short context)*
+- **RAM caveat for `32K`:** `32K` context requires **`32 GB` RAM minimum with other apps closed** (free RAM dipped to `90 MB` at `29.8K` tokens); for multitasking with browsers/IDEs open, keep the default **`-Ctx 16384`**.
+
+---
+
 ## Supported GPUs & MoE Models
 
 - **NVIDIA GPUs (8 GB+ VRAM):** Multi-arch binary covering **RTX 20-series (`sm_75`)**, **A100 (`sm_80`)**, **RTX 30-series / A6000 (`sm_86`)**, **RTX 40-series (`sm_89`)**, and **RTX 50-series (via PTX JIT)**. *(Physically verified so far on RTX 4070 Laptop `sm_89`; Linux CUDA 12.8 build coming next.)*
